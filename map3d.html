@@ -26,6 +26,8 @@ canvas{display:block;width:100vw;height:100vh}
 .worldlabel{position:absolute;transform:translate(-50%,-50%);font-family:var(--mono);font-size:10px;letter-spacing:1px;
   color:var(--t1);text-shadow:0 0 14px rgba(0,0,0,.9);white-space:nowrap;text-align:center}
 .worldlabel span{display:block;font-size:8px;color:var(--t3);margin-top:2px}
+.edgelabel{position:absolute;transform:translate(-50%,-50%);font-family:var(--mono);font-size:7px;letter-spacing:1px;
+  color:var(--t3);text-shadow:0 0 10px rgba(0,0,0,.95);white-space:nowrap;text-transform:uppercase}
 #focusHud{position:fixed;left:16px;bottom:18px;width:min(360px,calc(100vw - 32px));z-index:5;pointer-events:none;
   display:none;padding:12px 14px;border:1px solid rgba(125,211,252,.26);border-radius:8px;
   background:linear-gradient(135deg,rgba(4,7,14,.7),rgba(12,16,25,.38));backdrop-filter:blur(12px);
@@ -54,6 +56,18 @@ canvas{display:block;width:100vw;height:100vh}
   font-family:var(--mono);font-size:8px;letter-spacing:1px;color:var(--t3)}
 .depthRow input{width:100%;accent-color:var(--teal)}
 .depthRow b{color:var(--teal);font-weight:800}
+#layoutDesk{position:fixed;right:16px;top:118px;z-index:6;width:172px;padding:9px;border:1px solid rgba(90,96,128,.32);
+  border-radius:8px;background:linear-gradient(180deg,rgba(7,9,15,.68),rgba(5,6,10,.38));backdrop-filter:blur(12px);
+  box-shadow:0 0 28px rgba(0,0,0,.24);pointer-events:auto}
+.layoutTitle{font-family:var(--mono);font-size:8px;letter-spacing:1.4px;color:var(--t3);text-transform:uppercase;margin-bottom:6px}
+.layoutGrid{display:grid;grid-template-columns:1fr 1fr;gap:4px}
+.layoutGrid button{border:1px solid rgba(90,96,128,.42);border-radius:5px;background:rgba(9,11,18,.58);color:var(--t3);
+  font-family:var(--mono);font-size:8px;letter-spacing:.8px;padding:6px 4px;cursor:pointer}
+.layoutGrid button.on{border-color:var(--teal);color:var(--teal);background:rgba(45,212,191,.07);box-shadow:0 0 16px rgba(45,212,191,.12)}
+.layoutActions{display:grid;grid-template-columns:1fr 1fr;gap:4px;margin-top:5px}
+.layoutActions button{border:1px solid rgba(90,96,128,.42);border-radius:5px;background:rgba(9,11,18,.58);color:var(--t2);
+  font-family:var(--mono);font-size:8px;letter-spacing:.8px;padding:6px 4px;cursor:pointer}
+.layoutStatus{font-family:var(--mono);font-size:8px;color:var(--t3);line-height:1.35;margin-top:6px}
 #c.three-active{display:none}
 .hud{position:fixed;top:0;left:0;right:0;padding:12px 16px;display:flex;justify-content:space-between;
   align-items:flex-start;pointer-events:none;z-index:5}
@@ -205,7 +219,7 @@ canvas{display:block;width:100vw;height:100vh}
 .fdetail .row2{font-size:11px;color:var(--t2);padding:2px 0}
 .fdetail .row2 b{color:var(--t1)}
 body.roomMode .hud,body.roomMode .legend,body.roomMode .hint,
-body.roomMode #backUni,body.roomMode .histbar,body.roomMode .starpanel,body.roomMode #focusHud,body.roomMode #focusDesk{display:none!important}
+body.roomMode #backUni,body.roomMode .histbar,body.roomMode .starpanel,body.roomMode #focusHud,body.roomMode #focusDesk,body.roomMode #layoutDesk{display:none!important}
 body.roomMode .room{top:10px;max-height:calc(100vh - 20px)}
 .rtabs{display:flex;gap:2px;border-bottom:1px solid var(--bdr);margin-top:12px;flex-wrap:wrap}
 .rtabs button{font-family:var(--mono);font-size:8px;letter-spacing:1px;padding:6px 9px;background:none;
@@ -279,6 +293,22 @@ body.roomMode .room{top:10px;max-height:calc(100vh - 20px)}
     <button data-world-mode="activity">ACTIVITY</button>
   </div>
   <div class="depthRow"><span>EXPOSURE</span><input id="depthSlider" type="range" min="0" max="100" value="34"><b id="depthReadout">34%</b></div>
+</div>
+<div id="layoutDesk">
+  <div class="layoutTitle">Workspace Layout</div>
+  <div class="layoutGrid">
+    <button data-layout="freeform" class="on">FREE</button>
+    <button data-layout="pyramid">PYRAMID</button>
+    <button data-layout="sphere">SPHERE</button>
+    <button data-layout="grid">GRID</button>
+  </div>
+  <div class="layoutActions">
+    <button data-layout-action="group">GROUP</button>
+    <button data-layout-action="save">SAVE</button>
+    <button data-layout-action="reset">RESET</button>
+    <button data-layout-action="trace">TRACE</button>
+  </div>
+  <div class="layoutStatus" id="layoutStatus">freeform transforms load locally</div>
 </div>
 <button id="backUni" style="display:none;position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:12;
   background:var(--sur);border:1px solid var(--teal);color:var(--teal);font-family:var(--mono);font-size:9px;
@@ -13590,6 +13620,8 @@ const host=document.getElementById('threeUniverse');
 const labelsHost=document.getElementById('worldLabels');
 const focusHud=document.getElementById('focusHud');
 const focusDesk=document.getElementById('focusDesk');
+const layoutDesk=document.getElementById('layoutDesk');
+const layoutStatus=document.getElementById('layoutStatus');
 const depthSlider=document.getElementById('depthSlider');
 const depthReadout=document.getElementById('depthReadout');
 const fallbackCanvas=document.getElementById('c');
@@ -13597,13 +13629,33 @@ const api=window.UCC_API;
 const state=api.state;
 const byName=Object.fromEntries(state.entities.map(e=>[e.name,e]));
 const worlds=state.planetarySystem.apps.map(name=>byName[name]).filter(Boolean);
+const PROTOTYPE_ENTITY_NAMES=['NviroGear','ARCA','TreeOS','FieldTrace','BuildBoard','Control Map','Vyro','Alice'];
+const WORKSPACE_LAYOUT_STORAGE_KEY='ucc.spatialWorkspaceLayout.v1';
+const PROTOTYPE_ENTITIES=PROTOTYPE_ENTITY_NAMES.map(name=>byName[name]).filter(Boolean);
+const PROTOTYPE_IDS=new Set(PROTOTYPE_ENTITIES.map(e=>e.id));
+const PROTOTYPE_RELATIONSHIPS=state.relationships.filter(r=>PROTOTYPE_IDS.has(r.sourceId)&&PROTOTYPE_IDS.has(r.targetId));
+const RELATIONSHIP_COLORS={
+  contains:'#4e9fff',
+  uses:'#2dd4bf',
+  depends_on:'#a78bfa',
+  derived_from:'#f5c542',
+  part_of:'#7dd3fc',
+  instance_of:'#9aa1b8',
+  assigned_to:'#3ddc84',
+  operational_in:'#3ddc84',
+  orchestrated_by:'#a78bfa',
+  tracked_by:'#f5c542',
+  related_to:'#2dd4bf',
+  deployed_to:'#ff9f43',
+  managed_by:'#7dd3fc'
+};
 const LIVE_ACTIVITY_SPECS=[
-  {type:'visitor',label:'anonymous visitor',from:'Creative Studio',to:'Vyro',color:'#9aa1b8',period:18,phase:0.05},
-  {type:'owner',label:'signed-in owner',from:'Gear Room',to:'TreeOS',color:'#2dd4bf',period:24,phase:0.22},
-  {type:'agent',label:'Codex session',from:'TreeOS',to:'Control Map',color:'#a78bfa',period:21,phase:0.38},
-  {type:'deployment',label:'deployment capsule',from:'Control Map',to:'Vyro',color:'#3ddc84',period:30,phase:0.54},
-  {type:'signal',label:'field submission',from:'Alice',to:'TreeOS',color:'#4e9fff',period:16,phase:0.72},
-  {type:'warning',label:'failed job debris',from:'Vyro',to:'Gear Room',color:'#ff5c5c',period:34,phase:0.88}
+  {type:'agent',label:'Codex scope packet',from:'FieldTrace',to:'ARCA',color:'#a78bfa',period:21,phase:0.12},
+  {type:'signal',label:'field signal',from:'FieldTrace',to:'TreeOS',color:'#2dd4bf',period:18,phase:0.34},
+  {type:'deployment',label:'build update',from:'BuildBoard',to:'FieldTrace',color:'#3ddc84',period:26,phase:0.52},
+  {type:'owner',label:'owner inspection',from:'NviroGear',to:'Control Map',color:'#4e9fff',period:24,phase:0.68},
+  {type:'visitor',label:'store traffic',from:'NviroGear',to:'Vyro',color:'#9aa1b8',period:20,phase:0.8},
+  {type:'warning',label:'attention path',from:'Alice',to:'ARCA',color:'#f5c542',period:32,phase:0.92}
 ];
 const WORLD_INTERACTION_MODES=['explore','cutaway','explode','arch','activity'];
 const CAMERA_PRESETS={
@@ -14012,6 +14064,202 @@ class ActivityObject{
   }
 }
 
+class WorkspaceLayoutStore{
+  constructor(entities){
+    this.entities=entities;this.mode='freeform';this.transforms={};
+    this.seedDefaults();this.loadWorkspaceLayout();
+  }
+  seedDefaults(){
+    const defaults={
+      NviroGear:{position:{x:0,y:1.25,z:0},rotation:{x:0,y:.15,z:0},scale:1.24},
+      ARCA:{position:{x:.4,y:-1.55,z:-1.6},rotation:{x:.35,y:.55,z:0},scale:1.05},
+      TreeOS:{position:{x:-4.7,y:.85,z:-.8},rotation:{x:0,y:-.35,z:.04},scale:1.12},
+      FieldTrace:{position:{x:-3.35,y:-1.2,z:1.35},rotation:{x:.05,y:.55,z:0},scale:.92},
+      BuildBoard:{position:{x:1.35,y:-1.8,z:1.65},rotation:{x:.08,y:-.4,z:0},scale:.9},
+      'Control Map':{position:{x:-1.25,y:2.05,z:1.9},rotation:{x:.15,y:.2,z:0},scale:.94},
+      Vyro:{position:{x:4.6,y:.1,z:-1.05},rotation:{x:.04,y:-.65,z:.02},scale:1.02},
+      Alice:{position:{x:2.85,y:2.15,z:1.2},rotation:{x:.02,y:.25,z:0},scale:1.08}
+    };
+    this.entities.forEach(e=>{
+      const d=defaults[e.name]||{position:{x:0,y:0,z:0},rotation:{x:0,y:0,z:0},scale:1};
+      this.transforms[e.id]={...d,group:null};
+    });
+  }
+  loadWorkspaceLayout(){
+    try{
+      const saved=JSON.parse(localStorage.getItem(WORKSPACE_LAYOUT_STORAGE_KEY)||'null');
+      if(saved&&saved.transforms){
+        this.mode=saved.mode||'freeform';
+        for(const id in saved.transforms)if(this.transforms[id])this.transforms[id]={...this.transforms[id],...saved.transforms[id]};
+      }
+    }catch(err){console.warn('layout load failed',err)}
+  }
+  saveWorkspaceLayout(){
+    const payload={mode:this.mode,transforms:this.transforms,savedAt:new Date().toISOString()};
+    localStorage.setItem(WORKSPACE_LAYOUT_STORAGE_KEY,JSON.stringify(payload));
+    return payload;
+  }
+  resetWorkspaceLayout(){
+    localStorage.removeItem(WORKSPACE_LAYOUT_STORAGE_KEY);
+    this.mode='freeform';this.transforms={};this.seedDefaults();return this.transforms;
+  }
+  setTransform(id,object){
+    if(!this.transforms[id])this.transforms[id]={position:{x:0,y:0,z:0},rotation:{x:0,y:0,z:0},scale:1};
+    this.transforms[id].position={x:object.position.x,y:object.position.y,z:object.position.z};
+    this.transforms[id].rotation={x:object.rotation.x,y:object.rotation.y,z:object.rotation.z};
+    this.transforms[id].scale=object.scale.x||1;
+  }
+  groupEntities(names,groupName){
+    const ids=new Set(this.entities.filter(e=>names.includes(e.name)).map(e=>e.id));
+    for(const id in this.transforms)if(ids.has(id))this.transforms[id].group=groupName;
+    this.saveWorkspaceLayout();
+  }
+}
+
+class GraphEntityObject{
+  constructor(entity,index,layout){
+    this.entity=entity;this.index=index;this.planet=api.planetConfig(entity,index);
+    this.radius=this.presentationRadius();
+    this.group=new THREE.Group();this.group.userData.entityId=entity.id;
+    this.pickMeshes=[];this.motionBase=new THREE.Vector3();
+    this.createRepresentation();
+    this.applyTransform(layout.transforms[entity.id]);
+    this.label=this.createLabel();
+  }
+  presentationRadius(){
+    if(this.entity.name==='NviroGear')return 1.05;
+    if(this.entity.name==='TreeOS'||this.entity.name==='Alice')return .92;
+    if(this.entity.name==='FieldTrace'||this.entity.name==='Control Map')return .72;
+    return .8;
+  }
+  material(hex,role='normal',selected=false,opts={}){
+    const color=new THREE.Color(hex||api.identityColor(this.entity));
+    return applyVisualState(new THREE.MeshStandardMaterial({
+      color,emissive:color,emissiveIntensity:opts.emissiveIntensity??.2,
+      roughness:opts.roughness??.78,metalness:opts.metalness??.08,transparent:opts.transparent??false,opacity:opts.opacity??1,
+      side:opts.side||THREE.FrontSide
+    }),getVisualState(this.entity,role,selected));
+  }
+  createRepresentation(){
+    const name=this.entity.name,base=this.planet.baseColor||api.identityColor(this.entity),accent=this.planet.accentColor||base;
+    if(name==='TreeOS'||name==='FieldTrace'){
+      const island=new THREE.Group();
+      const land=new THREE.Mesh(new THREE.DodecahedronGeometry(this.radius,2),this.material(name==='TreeOS'?'#1f5b37':'#355848','normal',false,{roughness:.92}));
+      land.scale.set(1.65,.34,1.05);land.rotation.set(.18,.42,.06);land.castShadow=true;land.receiveShadow=true;island.add(land);
+      const root=new THREE.Mesh(new THREE.ConeGeometry(this.radius*.74,this.radius*1.18,7,1),this.material('#342b22','normal',false,{roughness:.96}));
+      root.position.y=-this.radius*.42;root.rotation.y=.3;root.castShadow=true;island.add(root);
+      for(let i=0;i<(name==='TreeOS'?9:5);i++){
+        const trunk=new THREE.Mesh(new THREE.CylinderGeometry(.018,.026,.22,6),this.material('#6d4c2f','normal',false,{roughness:.88}));
+        const canopy=new THREE.Mesh(new THREE.ConeGeometry(.08,.18,7),this.material('#2f9d5b','station',false,{emissiveIntensity:.7}));
+        const a=i*.91,r=.25+seeded(name+'tree-r',i)*this.radius*.62;
+        trunk.position.set(Math.cos(a)*r,.14,Math.sin(a)*r*.7);canopy.position.copy(trunk.position).add(new THREE.Vector3(0,.17,0));
+        island.add(trunk,canopy);
+      }
+      this.group.add(island);this.pickMeshes.push(land);
+    }else if(name==='BuildBoard'){
+      const board=new THREE.Mesh(new THREE.BoxGeometry(this.radius*1.7,this.radius*.9,.08),this.material('#101827','station',false,{metalness:.22,roughness:.36,emissiveIntensity:.85}));
+      const frame=new THREE.Mesh(new THREE.BoxGeometry(this.radius*1.9,this.radius*1.1,.05),new THREE.MeshBasicMaterial({color:0xf5c542,transparent:true,opacity:.22,wireframe:true}));
+      board.castShadow=true;this.group.add(board,frame);this.pickMeshes.push(board);
+    }else if(name==='ARCA'){
+      const core=new THREE.Mesh(new THREE.IcosahedronGeometry(this.radius,2),this.material(accent,'selected',false,{metalness:.36,roughness:.24,emissiveIntensity:1.1}));
+      const shell=new THREE.Mesh(new THREE.OctahedronGeometry(this.radius*1.35,1),new THREE.MeshBasicMaterial({color:new THREE.Color(accent).multiplyScalar(1.7),transparent:true,opacity:.16,wireframe:true,toneMapped:false}));
+      core.castShadow=true;this.group.add(core,shell);this.pickMeshes.push(core);
+    }else if(name==='Control Map'){
+      const plate=new THREE.Mesh(new THREE.CylinderGeometry(this.radius*1.05,this.radius*1.05,.12,7),this.material('#174d77','station',false,{metalness:.18,roughness:.4,emissiveIntensity:.65}));
+      plate.rotation.x=Math.PI/2;
+      const grid=new THREE.Mesh(new THREE.TorusGeometry(this.radius*.82,.008,8,80),new THREE.MeshBasicMaterial({color:[0,1.7,2.2],transparent:true,opacity:.65,toneMapped:false}));
+      grid.rotation.x=Math.PI/2;this.group.add(plate,grid);this.pickMeshes.push(plate);
+    }else if(name==='Vyro'){
+      const machine=new THREE.Mesh(new THREE.CylinderGeometry(this.radius*.75,this.radius*.98,this.radius*1.1,9),this.material('#3b2724','warning',false,{metalness:.38,roughness:.48,emissiveIntensity:.5}));
+      const ember=new THREE.Mesh(new THREE.TorusGeometry(this.radius*.86,.028,12,96),new THREE.MeshBasicMaterial({color:[2.2,.55,.08],transparent:true,opacity:.72,toneMapped:false}));
+      ember.rotation.x=Math.PI/2.35;machine.castShadow=true;this.group.add(machine,ember);this.pickMeshes.push(machine);
+    }else if(name==='Alice'){
+      const world=new THREE.Mesh(new THREE.SphereGeometry(this.radius,64,40),PlanetMaterial.create(this.entity,this.planet));
+      const atmo=new THREE.Mesh(new THREE.SphereGeometry(this.radius*1.08,64,32),new THREE.MeshBasicMaterial({color:0x75bfff,transparent:true,opacity:.16,side:THREE.BackSide,blending:THREE.AdditiveBlending}));
+      world.castShadow=true;world.receiveShadow=true;this.group.add(world,atmo);this.pickMeshes.push(world);
+    }else{
+      const artifact=new THREE.Mesh(new THREE.SphereGeometry(this.radius,48,32),this.material(base,'normal',false,{metalness:.14,roughness:.54}));
+      const halo=new THREE.Mesh(new THREE.TorusGeometry(this.radius*1.25,.012,8,96),new THREE.MeshBasicMaterial({color:new THREE.Color(accent).multiplyScalar(1.4),transparent:true,opacity:.28,toneMapped:false}));
+      halo.rotation.x=Math.PI/2.4;this.group.add(artifact,halo);this.pickMeshes.push(artifact);
+    }
+    this.pickMeshes.forEach(mesh=>{mesh.userData.entityId=this.entity.id;mesh.userData.graphEntity=this});
+    this.group.traverse(o=>{if(o.isMesh)o.userData.graphEntity=this});
+  }
+  createLabel(){
+    const el=document.createElement('div');el.className='worldlabel';
+    el.innerHTML=`${escapeHtml(this.entity.name)}<span>${escapeHtml(this.entity.type)} · ${escapeHtml(this.entity.health)}</span>`;
+    labelsHost.appendChild(el);return el;
+  }
+  applyTransform(transform){
+    if(!transform)return;
+    this.group.position.set(transform.position.x,transform.position.y,transform.position.z);
+    this.group.rotation.set(transform.rotation.x,transform.rotation.y,transform.rotation.z);
+    this.group.scale.setScalar(transform.scale||1);
+    this.motionBase.copy(this.group.position);
+  }
+  setPosition(position,layout){
+    this.group.position.copy(position);this.motionBase.copy(position);if(layout)layout.setTransform(this.entity.id,this.group);
+  }
+  tick(t,active,selected,mode,depth){
+    const breathe=Math.sin(t*.55+this.index)*.025;
+    if(!selected&&mode==='explore')this.group.position.y=this.motionBase.y+breathe;
+    this.group.rotation.y+=selected ? .003 : .0015;
+    const target=selected?1.18:active?1.08:1;
+    const s=this.group.scale.x+(target-this.group.scale.x)*.08;this.group.scale.setScalar(s);
+    this.group.traverse(o=>{
+      if(o.material&&'opacity' in o.material){
+        if(!o.userData.baseOpacity)o.userData.baseOpacity=o.material.opacity||1;
+        const selectedDim=(selected||active) ? .95 : .65;
+        o.material.opacity=o.userData.baseOpacity*selectedDim;
+      }
+    });
+  }
+  dispose(){this.label.remove()}
+}
+
+class GraphEdgeObject{
+  constructor(relationship,source,target,index){
+    this.relationship=relationship;this.source=source;this.target=target;this.index=index;
+    this.color=new THREE.Color(RELATIONSHIP_COLORS[relationship.type]||'#2dd4bf');
+    this.group=new THREE.Group();this.group.userData.relationshipId=relationship.id;
+    this.geometry=new THREE.BufferGeometry();
+    this.positions=new Float32Array(6);this.geometry.setAttribute('position',new THREE.BufferAttribute(this.positions,3));
+    this.line=new THREE.Line(this.geometry,applyVisualState(new THREE.LineBasicMaterial({color:this.color,transparent:true,opacity:.52,depthWrite:false,blending:THREE.AdditiveBlending}),getVisualState({status:'active'},'relationship',true)));
+    this.arrow=new THREE.Mesh(new THREE.ConeGeometry(.07,.18,12),new THREE.MeshBasicMaterial({color:this.color,transparent:true,opacity:.74,toneMapped:false}));
+    this.pulse=new THREE.Mesh(new THREE.SphereGeometry(.055,12,8),new THREE.MeshBasicMaterial({color:new THREE.Color(this.color).multiplyScalar(1.7),transparent:true,opacity:.9,toneMapped:false}));
+    this.label=this.createLabel();
+    this.group.add(this.line,this.arrow,this.pulse);
+    this.updateRelationshipGeometry(0,false);
+  }
+  createLabel(){
+    const el=document.createElement('div');el.className='edgelabel';el.textContent=this.relationship.type;
+    labelsHost.appendChild(el);return el;
+  }
+  updateRelationshipGeometry(t,selected){
+    const a=this.source.group.position,b=this.target.group.position;
+    this.positions.set([a.x,a.y,a.z,b.x,b.y,b.z]);this.geometry.attributes.position.needsUpdate=true;
+    const dir=b.clone().sub(a),len=dir.length();
+    if(len>.001){
+      const n=dir.clone().normalize(),tip=a.clone().lerp(b,.88);
+      this.arrow.position.copy(tip);this.arrow.quaternion.setFromUnitVectors(new THREE.Vector3(0,1,0),n);
+      const cycle=(t*.22+this.index*.13)%1,mid=a.clone().lerp(b,cycle);
+      mid.y+=Math.sin(cycle*Math.PI)*.28;this.pulse.position.copy(mid);
+    }
+    const active=selected||this.relationship.type==='assigned_to'||this.relationship.type==='orchestrated_by';
+    this.line.material.opacity=active ? .86 : .36;
+    this.arrow.material.opacity=active ? .86 : .42;
+    this.pulse.visible=active;
+  }
+  updateLabel(camera,visible){
+    const midpoint=this.source.group.position.clone().lerp(this.target.group.position,.5).project(camera);
+    this.label.style.left=(midpoint.x*.5+.5)*innerWidth+'px';
+    this.label.style.top=(-midpoint.y*.5+.5)*innerHeight+'px';
+    this.label.style.opacity=visible&&midpoint.z<1?.72:0;
+    this.label.style.color='#'+this.color.getHexString();
+  }
+  dispose(){this.label.remove();this.geometry.dispose();this.line.material.dispose();this.arrow.geometry.dispose();this.arrow.material.dispose();this.pulse.geometry.dispose();this.pulse.material.dispose()}
+}
+
 class UniverseScene{
   constructor(){
     this.clock=new THREE.Clock();this.scene=new THREE.Scene();this.scene.fog=new THREE.FogExp2(0x03040a,.018);
@@ -14028,9 +14276,9 @@ class UniverseScene{
     this.composer.addPass(new RenderPass(this.scene,this.camera));
     this.bloomPass=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),1,.72,1);this.composer.addPass(this.bloomPass);
     this.compositePass=new ShaderPass(CINEMATIC_COMPOSITE_SHADER);this.composer.addPass(this.compositePass);
-    this.raycaster=new THREE.Raycaster();this.pointer=new THREE.Vector2();this.planets=[];this.selected=null;this.cameraFlight=null;this.focusSettled=false;
+    this.raycaster=new THREE.Raycaster();this.pointer=new THREE.Vector2();this.planets=[];this.edges=[];this.entityLookup=new Map();this.selected=null;this.cameraFlight=null;this.focusSettled=false;
     this.worldMode='explore';this.depth=.34;
-    this.activities=[];
+    this.activities=[];this.layout=new WorkspaceLayoutStore(PROTOTYPE_ENTITIES);this.drag=null;this.layoutMode=this.layout.mode||'freeform';
     this.setupLights();this.setupScene();this.bind();
   }
   setupLights(){
@@ -14045,20 +14293,54 @@ class UniverseScene{
     this.starfield=new Starfield();this.scene.add(this.starfield.points);
     this.nebula=new Nebula();this.scene.add(this.nebula.points);
     this.dust=new CinematicDust();this.scene.add(this.dust.points);
-    const specs=new EntitySceneCompiler(worlds).compile();
-    specs.forEach(spec=>{
-      const planet=new Planet(spec);planet.setPosition(0);this.planets.push(planet);this.scene.add(planet.group);
-      this.scene.add(OrbitPath.create(planet.orbitRadius,spec.planet.accentColor||api.identityColor(spec.entity)));
+    this.environment=this.createLivingEnvironment();this.scene.add(this.environment);
+    PROTOTYPE_ENTITIES.forEach((entity,index)=>{
+      const node=new GraphEntityObject(entity,index,this.layout);
+      this.planets.push(node);this.entityLookup.set(entity.id,node);this.scene.add(node.group);
+    });
+    PROTOTYPE_RELATIONSHIPS.forEach((relationship,index)=>{
+      const source=this.entityLookup.get(relationship.sourceId),target=this.entityLookup.get(relationship.targetId);
+      if(source&&target){const edge=new GraphEdgeObject(relationship,source,target,index);this.edges.push(edge);this.scene.add(edge.group)}
     });
     const lookup=new Map(this.planets.map(p=>[p.entity.name,p]));
     LIVE_ACTIVITY_SPECS.forEach(spec=>{const activity=new ActivityObject(spec,lookup);this.activities.push(activity);this.scene.add(activity.group)});
+    this.applyWorkspaceLayout(this.layoutMode,true);
+    this.updateLayoutControls();
+  }
+  createLivingEnvironment(){
+    const root=new THREE.Group();
+    const fogBands=new THREE.Group();
+    for(let i=0;i<9;i++){
+      const geo=new THREE.RingGeometry(5+i*1.8,5.08+i*1.8,120);
+      const mat=new THREE.MeshBasicMaterial({color:i%2?0x2dd4bf:0x4e9fff,transparent:true,opacity:.018+i*.002,side:THREE.DoubleSide,depthWrite:false,blending:THREE.AdditiveBlending});
+      const band=new THREE.Mesh(geo,mat);band.rotation.x=Math.PI/2+(i-4)*.018;band.rotation.z=i*.41;band.position.y=-2.4+i*.22;fogBands.add(band);
+    }
+    root.add(fogBands);
+    for(let i=0;i<7;i++){
+      const island=new THREE.Mesh(new THREE.DodecahedronGeometry(.55+seeded('env-island',i)*.8,1),new THREE.MeshStandardMaterial({color:i%2?0x14251d:0x1b2430,roughness:.94,metalness:.04,transparent:true,opacity:.55}));
+      island.position.set((seeded('env-x',i)-.5)*14,-3.8+seeded('env-y',i)*2.1,(seeded('env-z',i)-.5)*9);
+      island.scale.set(1.6,.32,.9);island.rotation.set(.2,seeded('env-ry',i)*Math.PI,.08);root.add(island);
+    }
+    const conduitCount=120,positions=new Float32Array(conduitCount*3),colors=new Float32Array(conduitCount*3);
+    for(let i=0;i<conduitCount;i++){
+      positions[i*3]=(seeded('ambient-x',i)-.5)*18;
+      positions[i*3+1]=(seeded('ambient-y',i)-.5)*8;
+      positions[i*3+2]=(seeded('ambient-z',i)-.5)*11;
+      const c=new THREE.Color().setHSL(.47+seeded('ambient-h',i)*.14,.45,.46+seeded('ambient-l',i)*.2);
+      colors[i*3]=c.r;colors[i*3+1]=c.g;colors[i*3+2]=c.b;
+    }
+    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(positions,3));geo.setAttribute('color',new THREE.BufferAttribute(colors,3));
+    root.add(new THREE.Points(geo,new THREE.PointsMaterial({size:.035,vertexColors:true,transparent:true,opacity:.34,depthWrite:false,blending:THREE.AdditiveBlending,sizeAttenuation:true})));
+    return root;
   }
   bind(){
     addEventListener('resize',()=>this.resize());
     this.renderer.domElement.addEventListener('pointermove',e=>this.onPointer(e,false));
     this.renderer.domElement.addEventListener('click',e=>this.onPointer(e,true));
     this.renderer.domElement.addEventListener('dblclick',()=>{if(this.selected)api.enterRoom(this.selected.entity.id)});
-    this.renderer.domElement.addEventListener('pointerdown',()=>this.manualTakeover());
+    this.renderer.domElement.addEventListener('pointerdown',e=>this.startEntityDrag(e));
+    this.renderer.domElement.addEventListener('pointerup',()=>this.endEntityDrag());
+    this.renderer.domElement.addEventListener('pointerleave',()=>this.endEntityDrag());
     this.renderer.domElement.addEventListener('wheel',()=>this.manualTakeover(),{passive:true});
     if(focusDesk)focusDesk.querySelectorAll('[data-world-mode]').forEach(btn=>btn.addEventListener('click',()=>{
       this.setWorldMode(btn.getAttribute('data-world-mode'));
@@ -14068,6 +14350,18 @@ class UniverseScene{
       if(depthReadout)depthReadout.textContent=depthSlider.value+'%';
       this.updateFocusHud();
     });
+    if(layoutDesk){
+      layoutDesk.querySelectorAll('[data-layout]').forEach(btn=>btn.addEventListener('click',()=>{
+        this.applyWorkspaceLayout(btn.getAttribute('data-layout'));
+      }));
+      layoutDesk.querySelectorAll('[data-layout-action]').forEach(btn=>btn.addEventListener('click',()=>{
+        const action=btn.getAttribute('data-layout-action');
+        if(action==='save')this.saveWorkspaceLayout();
+        if(action==='reset')this.resetWorkspaceLayout();
+        if(action==='group')this.groupSelectedEntities();
+        if(action==='trace')this.traceSelectedImpact();
+      }));
+    }
     document.addEventListener('visibilitychange',()=>{this.paused=document.hidden});
   }
   resize(){
@@ -14076,20 +14370,131 @@ class UniverseScene{
     if(this.bloomPass)this.bloomPass.setSize(innerWidth,innerHeight);
   }
   onPointer(event,commit){
+    if(this.drag&&event.buttons){this.updateEntityDrag(event);return}
     const r=this.renderer.domElement.getBoundingClientRect();
     this.pointer.x=((event.clientX-r.left)/r.width)*2-1;this.pointer.y=-((event.clientY-r.top)/r.height)*2+1;
     this.raycaster.setFromCamera(this.pointer,this.camera);
-    const hits=this.raycaster.intersectObjects(this.planets.map(p=>p.body),false);
+    const hits=this.raycaster.intersectObjects(this.pickMeshes(),false);
     this.hover=hits.length?this.planets.find(p=>p.entity.id===hits[0].object.userData.entityId):null;
-    this.renderer.domElement.style.cursor=this.hover?'pointer':'grab';
+    this.renderer.domElement.style.cursor=this.drag?'grabbing':this.hover?'grab':'default';
     if(commit&&this.hover)this.select(this.hover);
   }
-  select(planet){
+  pickMeshes(){return this.planets.flatMap(p=>p.pickMeshes||[])}
+  startEntityDrag(event){
+    this.manualTakeover();
+    const r=this.renderer.domElement.getBoundingClientRect();
+    this.pointer.x=((event.clientX-r.left)/r.width)*2-1;this.pointer.y=-((event.clientY-r.top)/r.height)*2+1;
+    this.raycaster.setFromCamera(this.pointer,this.camera);
+    const hits=this.raycaster.intersectObjects(this.pickMeshes(),false);
+    if(!hits.length)return;
+    const entity=this.planets.find(p=>p.entity.id===hits[0].object.userData.entityId);
+    if(!entity)return;
+    this.select(entity,true);
+    const planeNormal=this.camera.getWorldDirection(new THREE.Vector3()).normalize();
+    const plane=new THREE.Plane().setFromNormalAndCoplanarPoint(planeNormal,entity.group.position);
+    const hitPoint=new THREE.Vector3();this.raycaster.ray.intersectPlane(plane,hitPoint);
+    this.drag={entity,plane,offset:entity.group.position.clone().sub(hitPoint),moved:false};
+    this.controls.enabled=false;this.layoutMode='freeform';this.layout.mode='freeform';this.updateLayoutControls('dragging '+entity.entity.name);
+  }
+  updateEntityDrag(event){
+    if(!this.drag)return;
+    const r=this.renderer.domElement.getBoundingClientRect();
+    this.pointer.x=((event.clientX-r.left)/r.width)*2-1;this.pointer.y=-((event.clientY-r.top)/r.height)*2+1;
+    this.raycaster.setFromCamera(this.pointer,this.camera);
+    const hitPoint=new THREE.Vector3();
+    if(this.raycaster.ray.intersectPlane(this.drag.plane,hitPoint)){
+      const next=hitPoint.add(this.drag.offset);
+      this.drag.entity.setPosition(next,this.layout);
+      this.drag.moved=true;
+    }
+  }
+  endEntityDrag(){
+    if(!this.drag)return;
+    this.layout.setTransform(this.drag.entity.entity.id,this.drag.entity.group);
+    this.layout.saveWorkspaceLayout();
+    this.drag=null;this.controls.enabled=true;this.updateLayoutControls('freeform saved');
+  }
+  select(planet,skipFlight=false){
     this.selected=planet;this.focusSettled=false;api.selectEntity(planet.entity.id);this.setWorldMode(this.worldMode||'explore',true);this.updateFocusHud();
-    this.startCameraFlight(planet,'world');
+    if(!skipFlight)this.startCameraFlight(planet,'world');
+  }
+  applyWorkspaceLayout(mode='freeform',silent=false){
+    this.layoutMode=mode;this.layout.mode=mode;
+    const positions=this.layoutPositions(mode);
+    this.planets.forEach((node,index)=>{
+      const target=positions.get(node.entity.id);
+      if(target){
+        node.setPosition(target.position,mode==='freeform'?this.layout:null);
+        node.group.rotation.set(target.rotation.x,target.rotation.y,target.rotation.z);
+        node.group.scale.setScalar(target.scale||1);
+        if(mode==='freeform')this.layout.setTransform(node.entity.id,node.group);
+      }else if(mode==='freeform'){
+        node.applyTransform(this.layout.transforms[node.entity.id]);
+      }
+    });
+    this.updateLayoutControls(silent?'':mode+' layout applied');
+  }
+  layoutPositions(mode){
+    const map=new Map();
+    if(mode==='freeform'){
+      this.planets.forEach(node=>{
+        const t=this.layout.transforms[node.entity.id];
+        if(t)map.set(node.entity.id,{position:new THREE.Vector3(t.position.x,t.position.y,t.position.z),rotation:t.rotation,scale:t.scale});
+      });
+      return map;
+    }
+    if(mode==='pyramid'){
+      const coords=[
+        ['NviroGear',0,3.4,0,1.18],['ARCA',0,1.2,-1.2,1.05],['TreeOS',-2.7,-.8,.5,1.05],['FieldTrace',-1.1,-2.4,1.65,.86],
+        ['Control Map',1.1,-2.4,1.65,.86],['BuildBoard',2.7,-.8,.5,.86],['Vyro',-1.85,-3.55,-1.55,.94],['Alice',1.85,-3.55,-1.55,1.02]
+      ];
+      coords.forEach(([name,x,y,z,scale])=>{const e=byName[name];if(e)map.set(e.id,{position:new THREE.Vector3(x,y,z),rotation:{x:.06,y:.35,z:0},scale})});
+      return map;
+    }
+    if(mode==='sphere'){
+      this.planets.forEach((node,i)=>{
+        const phi=Math.acos(-1+2*(i+.5)/this.planets.length),theta=Math.sqrt(this.planets.length*Math.PI)*phi,r=4.2;
+        map.set(node.entity.id,{position:new THREE.Vector3(Math.cos(theta)*Math.sin(phi)*r,Math.cos(phi)*r*.8,Math.sin(theta)*Math.sin(phi)*r),rotation:{x:0,y:theta,z:0},scale:1});
+      });
+      return map;
+    }
+    if(mode==='grid'){
+      this.planets.forEach((node,i)=>{
+        const x=(i%4-1.5)*2.8,y=(Math.floor(i/4)-.5)*-2.4,z=(i%2)*1.1-.55;
+        map.set(node.entity.id,{position:new THREE.Vector3(x,y,z),rotation:{x:0,y:.2,z:0},scale:1});
+      });
+      return map;
+    }
+    return map;
+  }
+  saveWorkspaceLayout(){
+    this.planets.forEach(node=>this.layout.setTransform(node.entity.id,node.group));
+    this.layout.saveWorkspaceLayout();this.updateLayoutControls('layout saved');
+  }
+  resetWorkspaceLayout(){
+    this.layout.resetWorkspaceLayout();this.applyWorkspaceLayout('freeform');this.updateLayoutControls('layout reset');
+  }
+  groupSelectedEntities(){
+    this.layoutMode='freeform';this.layout.mode='freeform';
+    this.layout.groupEntities(['TreeOS','FieldTrace','Control Map'],'treeos-operations-cluster');
+    const center=new THREE.Vector3(-3,.35,1);
+    ['TreeOS','FieldTrace','Control Map'].forEach((name,i)=>{
+      const node=this.entityLookup.get(byName[name]?.id);if(!node)return;
+      const angle=i/3*Math.PI*2+Math.PI*.1;
+      node.setPosition(center.clone().add(new THREE.Vector3(Math.cos(angle)*1.35,(i-1)*.58,Math.sin(angle)*1.1)),this.layout);
+    });
+    this.layout.saveWorkspaceLayout();this.updateLayoutControls('TreeOS + FieldTrace + Control Map grouped');
+  }
+  traceSelectedImpact(){
+    if(!this.selected){this.updateLayoutControls('select an entity to trace');return}
+    this.worldMode='activity';this.updateLayoutControls('tracing '+this.selected.entity.name);
+  }
+  updateLayoutControls(note){
+    if(layoutDesk)layoutDesk.querySelectorAll('[data-layout]').forEach(btn=>btn.classList.toggle('on',btn.getAttribute('data-layout')===this.layoutMode));
+    if(layoutStatus)layoutStatus.textContent=note||(`${this.layoutMode} · ${this.planets.length} entities · ${this.edges.length} edges`);
   }
   cameraPoseFor(planet,presetName){
-    const preset=CAMERA_PRESETS[presetName]||CAMERA_PRESETS.world,dir=planet.group.position.clone().normalize();
+    const preset=CAMERA_PRESETS[presetName]||CAMERA_PRESETS.world,dir=planet.group.position.lengthSq()>.01?planet.group.position.clone().normalize():new THREE.Vector3(.35,.22,1).normalize();
     const side=new THREE.Vector3(-dir.z*.55,.24,dir.x*.55).normalize();
     const distance=Math.max(preset.distance,planet.radius*(presetName==='arch'?2.45:3.15));
     return {
@@ -14182,7 +14587,16 @@ class UniverseScene{
       p.label.style.opacity=v.z<1?(this.selected&&!this.related(p) ? .28 : 1):0;
     });
   }
-  related(p){return !this.selected||p===this.selected}
+  updateEdgeLabels(){
+    this.edges.forEach(edge=>{
+      const visible=!this.selected||edge.source===this.selected||edge.target===this.selected||this.worldMode==='activity';
+      edge.updateLabel(this.camera,visible);
+    });
+  }
+  related(p){
+    return !this.selected||p===this.selected||this.edges.some(edge=>
+      (edge.source===this.selected&&edge.target===p)||(edge.target===this.selected&&edge.source===p));
+  }
   animate(){
     requestAnimationFrame(()=>this.animate());
     if(this.paused)return;
@@ -14190,7 +14604,8 @@ class UniverseScene{
     if(this.dust)this.dust.tick(t,this.camera);
     if(this.nebula)this.nebula.points.rotation.y=t*.0007;
     const flightBlend=this.updateCameraFlight();
-    this.planets.forEach(p=>{p.setPosition(t);p.tick(t,p===this.hover||p===this.selected,p===this.selected,this.worldMode,this.depth);p.group.visible=true;p.label.style.opacity=(!this.selected||p===this.selected)?1:.18});
+    this.planets.forEach(p=>{p.tick(t,p===this.hover||p===this.selected||this.related(p),p===this.selected,this.worldMode,this.depth);p.group.visible=true;p.label.style.opacity=(!this.selected||this.related(p))?1:.18});
+    this.edges.forEach(edge=>edge.updateRelationshipGeometry(t,!this.selected||edge.source===this.selected||edge.target===this.selected));
     this.activities.forEach(a=>a.tick(t));
     this.activities.forEach(a=>{a.group.visible=a.group.visible&&(!this.selected||a.from===this.selected||a.to===this.selected||this.worldMode==='activity')});
     this.applyFocusVisibility();
@@ -14207,7 +14622,7 @@ class UniverseScene{
       this.bloomPass.strength=.42+Math.min(1,effectIntensity)*.72;
       this.bloomPass.threshold=1;
     }
-    this.controls.update();this.updateLabels();this.composer.render();
+    this.controls.update();this.updateLabels();this.updateEdgeLabels();this.composer.render();
   }
 }
 
