@@ -13581,6 +13581,10 @@ try{frame()}catch(err){document.body.innerHTML='<div style="padding:20px;font-fa
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 
 const host=document.getElementById('threeUniverse');
 const labelsHost=document.getElementById('worldLabels');
@@ -13602,6 +13606,44 @@ const LIVE_ACTIVITY_SPECS=[
   {type:'warning',label:'failed job debris',from:'Vyro',to:'Gear Room',color:'#ff5c5c',period:34,phase:0.88}
 ];
 const WORLD_INTERACTION_MODES=['explore','cutaway','explode','arch','activity'];
+const CAMERA_PRESETS={
+  cosmos:{distance:38,height:14,fov:42},
+  world:{distance:5.8,height:1.5,fov:38},
+  atmosphere:{distance:4.8,height:.9,fov:35},
+  arch:{distance:3.9,height:.52,fov:32}
+};
+const CINEMATIC_COMPOSITE_SHADER={
+  uniforms:{tDiffuse:{value:null},uTime:{value:0},uIntensity:{value:0},uGrain:{value:.055},uVignette:{value:.52},uAberration:{value:.0018}},
+  vertexShader:'varying vec2 vUv;void main(){vUv=uv;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0);}',
+  fragmentShader:'uniform sampler2D tDiffuse;uniform float uTime;uniform float uIntensity;uniform float uGrain;uniform float uVignette;uniform float uAberration;varying vec2 vUv;float hash12(vec2 p){vec3 p3=fract(vec3(p.xyx)*.1031);p3+=dot(p3,p3.yzx+33.33);return fract((p3.x+p3.y)*p3.z);}void main(){vec2 uv=vUv;vec2 dir=uv-.5;float lens=dot(dir,dir);vec2 ca=dir*uAberration*uIntensity;float r=texture2D(tDiffuse,uv+ca).r;float g=texture2D(tDiffuse,uv).g;float b=texture2D(tDiffuse,uv-ca).b;vec3 col=vec3(r,g,b);float vig=smoothstep(.92,uVignette,lens);col*=1.0-vig*(.34+.24*uIntensity);float grain=(hash12(uv*vec2(1280.0,720.0)+uTime)-.5)*uGrain;col+=grain*(.35+.65*uIntensity);col+=vec3(.025,.018,.01)*uIntensity*(1.0-lens);gl_FragColor=vec4(col,1.0);}'
+};
+
+function getVisualState(entity,role='normal',selected=false){
+  const health=(entity&&entity.health||'').toLowerCase(),status=(entity&&entity.status||'').toLowerCase();
+  const active=selected||['activity','relationship','station','selected'].includes(role)||/running|active|live|deployed|processing/.test(status);
+  const warning=role==='warning'||/warning|degraded|blocked/.test(health+status);
+  const critical=/critical|failed|down|danger/.test(health+status);
+  const color=critical?'#ff5c5c':warning?'#f5c542':role==='relationship'?'#2dd4bf':role==='station'?'#7dd3fc':selected?'#2dd4bf':'#9aa1b8';
+  return {
+    color,
+    emissive:color,
+    emissiveIntensity:critical?3.2:warning?2.35:active?1.9:.18,
+    opacity:active?1:.72,
+    pulse:critical||warning||role==='activity',
+    bloomEligible:active||warning||critical
+  };
+}
+function applyVisualState(material,visual){
+  if(!material)return material;
+  if(visual.bloomEligible){
+    if(material.color)material.color=new THREE.Color(visual.color).multiplyScalar(1.45);
+    if(material.emissive)material.emissive=new THREE.Color(visual.emissive);
+    if('emissiveIntensity' in material)material.emissiveIntensity=visual.emissiveIntensity;
+    material.toneMapped=false;
+  }
+  if('opacity' in material)material.opacity=visual.opacity;
+  return material;
+}
 
 class EntitySceneCompiler{
   constructor(entities){this.entities=entities}
@@ -13759,7 +13801,7 @@ class Planet{
     underside.position.y=-.085*scale;territory.add(underside);
     const station=new THREE.Mesh(
       new THREE.CylinderGeometry(.018,.018,.045,8),
-      new THREE.MeshStandardMaterial({color:0xdbeafe,emissive:color,emissiveIntensity:.7,roughness:.38,metalness:.28,transparent:true,opacity:.8})
+      applyVisualState(new THREE.MeshStandardMaterial({color:0xdbeafe,emissive:color,roughness:.38,metalness:.28,transparent:true,opacity:.8}),getVisualState(this.entity,'station',false))
     );
     station.position.set(.035*scale,.055*scale,-.018*scale);territory.add(station);
     return territory;
@@ -13769,7 +13811,7 @@ class Planet{
     const warm=new THREE.Color(this.planet.baseColor||api.identityColor(this.entity)),accent=new THREE.Color(this.planet.accentColor||'#7dd3fc');
     for(let i=0;i<4;i++){
       const geo=new THREE.TorusGeometry(this.radius*(1.34+i*.11),.006+i*.002,8,180);
-      const mat=new THREE.MeshBasicMaterial({color:i%2?accent:warm,transparent:true,opacity:.11+i*.035,depthWrite:false,blending:THREE.AdditiveBlending});
+      const mat=applyVisualState(new THREE.MeshBasicMaterial({color:i%2?accent:warm,transparent:true,opacity:.11+i*.035,depthWrite:false,blending:THREE.AdditiveBlending}),getVisualState(this.entity,'selected',true));
       const ring=new THREE.Mesh(geo,mat);ring.rotation.x=Math.PI/2.72+i*.045;ring.rotation.z=-.28+i*.16;ring.userData.lensRing=true;root.add(ring);
     }
     const count=360,positions=new Float32Array(count*3),colors=new Float32Array(count*3);
@@ -13800,7 +13842,7 @@ class Planet{
       if(i%3===0)continue;
       const geo=new THREE.BufferGeometry().setFromPoints([anchors[i-1],anchors[i]]);
       const color=new THREE.Color(this.planet.accentColor||api.identityColor(this.entity));
-      const line=new THREE.Line(geo,new THREE.LineBasicMaterial({color,transparent:true,opacity:.16,depthWrite:false,blending:THREE.AdditiveBlending}));
+      const line=new THREE.Line(geo,applyVisualState(new THREE.LineBasicMaterial({color,transparent:true,opacity:.16,depthWrite:false,blending:THREE.AdditiveBlending}),getVisualState(this.entity,'relationship',false)));
       line.userData.relationshipPath=true;root.add(line);
     }
     const moteCount=64,positions=new Float32Array(moteCount*3),colors=new Float32Array(moteCount*3);
@@ -13950,12 +13992,12 @@ class ActivityObject{
     if(this.spec.type==='deployment')geo=new THREE.CapsuleGeometry(.06,.2,6,12);
     if(this.spec.type==='agent')geo=new THREE.OctahedronGeometry(.13,0);
     if(this.spec.type==='warning')geo=new THREE.TetrahedronGeometry(.13,0);
-    const mat=new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:this.spec.type==='warning'?1.6:.7,roughness:.46,metalness:.18});
+    const mat=applyVisualState(new THREE.MeshStandardMaterial({color,emissive:color,roughness:.46,metalness:.18}),getVisualState({status:this.spec.type},this.spec.type==='warning'?'warning':'activity',true));
     const mesh=new THREE.Mesh(geo,mat);mesh.castShadow=false;return mesh;
   }
   createTrail(){
     const pts=[new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,-.7)];
-    return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:new THREE.Color(this.spec.color),transparent:true,opacity:.34}));
+    return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),applyVisualState(new THREE.LineBasicMaterial({color:new THREE.Color(this.spec.color),transparent:true,opacity:.34}),getVisualState({status:this.spec.type},this.spec.type==='warning'?'warning':'activity',true)));
   }
   tick(t){
     if(!this.from||!this.to)return;
@@ -13982,7 +14024,11 @@ class UniverseScene{
     host.appendChild(this.renderer.domElement);
     this.controls=new OrbitControls(this.camera,this.renderer.domElement);
     this.controls.enableDamping=true;this.controls.dampingFactor=.06;this.controls.minDistance=4.2;this.controls.maxDistance=118;
-    this.raycaster=new THREE.Raycaster();this.pointer=new THREE.Vector2();this.planets=[];this.selected=null;this.flyTarget=null;this.focusSettled=false;
+    this.composer=new EffectComposer(this.renderer);
+    this.composer.addPass(new RenderPass(this.scene,this.camera));
+    this.bloomPass=new UnrealBloomPass(new THREE.Vector2(innerWidth,innerHeight),1,.72,1);this.composer.addPass(this.bloomPass);
+    this.compositePass=new ShaderPass(CINEMATIC_COMPOSITE_SHADER);this.composer.addPass(this.compositePass);
+    this.raycaster=new THREE.Raycaster();this.pointer=new THREE.Vector2();this.planets=[];this.selected=null;this.cameraFlight=null;this.focusSettled=false;
     this.worldMode='explore';this.depth=.34;
     this.activities=[];
     this.setupLights();this.setupScene();this.bind();
@@ -14012,6 +14058,8 @@ class UniverseScene{
     this.renderer.domElement.addEventListener('pointermove',e=>this.onPointer(e,false));
     this.renderer.domElement.addEventListener('click',e=>this.onPointer(e,true));
     this.renderer.domElement.addEventListener('dblclick',()=>{if(this.selected)api.enterRoom(this.selected.entity.id)});
+    this.renderer.domElement.addEventListener('pointerdown',()=>this.manualTakeover());
+    this.renderer.domElement.addEventListener('wheel',()=>this.manualTakeover(),{passive:true});
     if(focusDesk)focusDesk.querySelectorAll('[data-world-mode]').forEach(btn=>btn.addEventListener('click',()=>{
       this.setWorldMode(btn.getAttribute('data-world-mode'));
     }));
@@ -14022,7 +14070,11 @@ class UniverseScene{
     });
     document.addEventListener('visibilitychange',()=>{this.paused=document.hidden});
   }
-  resize(){this.camera.aspect=innerWidth/innerHeight;this.camera.updateProjectionMatrix();this.renderer.setSize(innerWidth,innerHeight)}
+  resize(){
+    this.camera.aspect=innerWidth/innerHeight;this.camera.updateProjectionMatrix();this.renderer.setSize(innerWidth,innerHeight);
+    if(this.composer)this.composer.setSize(innerWidth,innerHeight);
+    if(this.bloomPass)this.bloomPass.setSize(innerWidth,innerHeight);
+  }
   onPointer(event,commit){
     const r=this.renderer.domElement.getBoundingClientRect();
     this.pointer.x=((event.clientX-r.left)/r.width)*2-1;this.pointer.y=-((event.clientY-r.top)/r.height)*2+1;
@@ -14034,10 +14086,44 @@ class UniverseScene{
   }
   select(planet){
     this.selected=planet;this.focusSettled=false;api.selectEntity(planet.entity.id);this.setWorldMode(this.worldMode||'explore',true);this.updateFocusHud();
-    const dir=planet.group.position.clone().normalize();
-    const side=new THREE.Vector3(-dir.z*.45,.22,dir.x*.45).normalize();
-    const focusDistance=Math.max(4.9,planet.radius*3.15);
-    this.flyTarget={target:planet.group.position.clone(),camera:planet.group.position.clone().add(dir.multiplyScalar(focusDistance)).add(side.multiplyScalar(1.6)).add(new THREE.Vector3(0,planet.radius*1.05,0)),speed:.045};
+    this.startCameraFlight(planet,'world');
+  }
+  cameraPoseFor(planet,presetName){
+    const preset=CAMERA_PRESETS[presetName]||CAMERA_PRESETS.world,dir=planet.group.position.clone().normalize();
+    const side=new THREE.Vector3(-dir.z*.55,.24,dir.x*.55).normalize();
+    const distance=Math.max(preset.distance,planet.radius*(presetName==='arch'?2.45:3.15));
+    return {
+      target:planet.group.position.clone(),
+      camera:planet.group.position.clone().add(dir.multiplyScalar(distance)).add(side.multiplyScalar(presetName==='cosmos'?3.2:1.65)).add(new THREE.Vector3(0,planet.radius*preset.height,0)),
+      fov:preset.fov
+    };
+  }
+  startCameraFlight(planet,presetName,onComplete){
+    const pose=this.cameraPoseFor(planet,presetName);
+    this.controls.enabled=false;
+    this.cameraFlight={
+      fromCamera:this.camera.position.clone(),toCamera:pose.camera,
+      fromTarget:this.controls.target.clone(),toTarget:pose.target,
+      fromFov:this.camera.fov,toFov:pose.fov,
+      started:performance.now(),duration:presetName==='arch'?1250:presetName==='atmosphere'?1100:1450,
+      presetName,onComplete
+    };
+  }
+  manualTakeover(){
+    if(!this.cameraFlight)return;
+    this.cameraFlight=null;this.controls.enabled=true;this.focusSettled=!!this.selected;
+  }
+  updateCameraFlight(){
+    if(!this.cameraFlight)return 0;
+    const f=this.cameraFlight,raw=Math.min(1,(performance.now()-f.started)/f.duration),k=easeInOutCubic(raw);
+    this.camera.position.lerpVectors(f.fromCamera,f.toCamera,k);
+    this.controls.target.lerpVectors(f.fromTarget,f.toTarget,k);
+    this.camera.fov=f.fromFov+(f.toFov-f.fromFov)*k;this.camera.updateProjectionMatrix();
+    if(raw>=1){
+      const done=f.onComplete;this.cameraFlight=null;this.controls.enabled=true;this.focusSettled=!!this.selected;
+      if(done)done();
+    }
+    return k;
   }
   updateFocusHud(){
     if(!focusHud)return;
@@ -14061,6 +14147,10 @@ class UniverseScene{
     if(focusDesk)focusDesk.classList.toggle('on',!!this.selected);
     if(focusDesk)focusDesk.querySelectorAll('[data-world-mode]').forEach(btn=>btn.classList.toggle('on',btn.getAttribute('data-world-mode')===mode));
     if(depthSlider&&depthReadout){this.depth=Number(depthSlider.value)/100;depthReadout.textContent=depthSlider.value+'%'}
+    if(this.selected&&!silent){
+      const preset=mode==='arch'?'arch':mode==='cutaway'||mode==='explode'?'atmosphere':'world';
+      this.startCameraFlight(this.selected,preset);
+    }
     if(mode==='arch'&&this.selected&&!silent){
       api.enterRoom(this.selected.entity.id);
       setTimeout(()=>{
@@ -14099,25 +14189,31 @@ class UniverseScene{
     const t=this.clock.getElapsedTime();
     if(this.dust)this.dust.tick(t,this.camera);
     if(this.nebula)this.nebula.points.rotation.y=t*.0007;
+    const flightBlend=this.updateCameraFlight();
     this.planets.forEach(p=>{p.setPosition(t);p.tick(t,p===this.hover||p===this.selected,p===this.selected,this.worldMode,this.depth);p.group.visible=true;p.label.style.opacity=(!this.selected||p===this.selected)?1:.18});
     this.activities.forEach(a=>a.tick(t));
     this.activities.forEach(a=>{a.group.visible=a.group.visible&&(!this.selected||a.from===this.selected||a.to===this.selected||this.worldMode==='activity')});
     this.applyFocusVisibility();
-    if(this.flyTarget){
-      const d=this.camera.position.distanceTo(this.flyTarget.camera),ease=Math.max(.015,Math.min(.072,d/70));
-      this.controls.target.lerp(this.flyTarget.target,ease*1.25);
-      this.camera.position.lerp(this.flyTarget.camera,ease);
-      if(this.camera.position.distanceTo(this.flyTarget.camera)<.06){this.flyTarget=null;this.focusSettled=true}
-    }else if(this.selected&&this.focusSettled){
+    if(this.selected&&this.focusSettled&&!this.cameraFlight){
       const dir=this.camera.position.clone().sub(this.selected.group.position).normalize(),settle=new THREE.Vector3(-dir.z,0,dir.x).multiplyScalar(Math.sin(t*.22)*.004);
       this.camera.position.add(settle);
     }
-    this.controls.update();this.updateLabels();this.renderer.render(this.scene,this.camera);
+    const effectIntensity=(this.selected ? .42 : 0)+(this.worldMode==='activity' ? .28 : 0)+((this.worldMode==='cutaway'||this.worldMode==='explode'||this.worldMode==='arch') ? this.depth*.36 : 0)+flightBlend*.18;
+    if(this.compositePass){
+      this.compositePass.uniforms.uTime.value=t;
+      this.compositePass.uniforms.uIntensity.value=Math.min(1,effectIntensity);
+    }
+    if(this.bloomPass){
+      this.bloomPass.strength=.42+Math.min(1,effectIntensity)*.72;
+      this.bloomPass.threshold=1;
+    }
+    this.controls.update();this.updateLabels();this.composer.render();
   }
 }
 
 function hash(str){let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}return Math.abs(h>>>0)}
 function seeded(prefix,i){return (hash(prefix+':'+i)%100000)/100000}
+function easeInOutCubic(x){return x<.5?4*x*x*x:1-Math.pow(-2*x+2,3)/2}
 function rand2(x,y,seed){return (hash(Math.floor(x)+','+Math.floor(y)+','+seed)%10000)/10000}
 function smooth(n){return n*n*(3-2*n)}
 function valueNoise(x,y,seed){

@@ -198,6 +198,8 @@ The presentation layer can become highly immersive and brand-specific, but it mu
 
 Visual references such as Opulence, Gargantua-style cinematic space, and Avatar-like floating worlds should be treated as Experience Profile inputs. They inform rendering language, transitions, lighting, density, and mood; they do not replace the canonical graph, room profile, ARCH model, or repository boundaries.
 
+Camera flights, bloom, grain, atmosphere, chromatic aberration, and similar effects are presentation effects. They should be derived from canonical state through a presentation helper, not treated as state themselves. Example: an entity status of `RUNNING` may make a module or relationship path bloom-eligible, but the bloom is only a visual consequence of that status.
+
 ## Entity Lifecycle
 
 Support this conceptual lifecycle:
