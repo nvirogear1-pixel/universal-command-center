@@ -7,6 +7,7 @@ const html = readFileSync(new URL('../index.html', import.meta.url), 'utf8');
 
 const requiredPlanets = ['Alice', 'TreeOS', 'Vyro', 'Control Map', 'Gear Room', 'Creative Studio'];
 const requiredPlanetFields = [
+  'rendererType',
   'radius',
   'surfaceType',
   'atmosphere',
@@ -29,6 +30,7 @@ test('planetary system config preserves the six initial app worlds', () => {
     const entity = state.entities.find((candidate) => candidate.name === name);
     assert.ok(entity, `${name} entity exists`);
     assert.ok(entity.metadata?.planet, `${name} has planet metadata`);
+    assert.equal(entity.metadata.planet.rendererType, 'three', `${name} uses the Three.js universe renderer`);
     assert.ok(Array.isArray(entity.metadata.planet.layers), `${name} has architecture layers`);
     assert.ok(entity.metadata.planet.layers.length > 0, `${name} has at least one architecture layer`);
 
@@ -55,6 +57,10 @@ test('TreeOS architecture layers describe scoped workspace boundaries', () => {
 test('HTML renderer includes planet rendering hooks and preserved shell features', () => {
   for (const marker of [
     'PLANETARY_SHELL_VERSION',
+    'new THREE.WebGLRenderer',
+    'OrbitControls',
+    'Raycaster',
+    'EntitySceneCompiler',
     'drawPlanet',
     'drawOrbitPath',
     'drawSpace',

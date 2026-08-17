@@ -308,7 +308,8 @@
               ],
               "color": "#c084fc"
             }
-          ]
+          ],
+          "rendererType": "three"
         },
         "shell": true
       },
@@ -1067,7 +1068,8 @@
               ],
               "color": "#e879f9"
             }
-          ]
+          ],
+          "rendererType": "three"
         },
         "shell": false
       },
@@ -1981,7 +1983,8 @@
               ],
               "color": "#c084fc"
             }
-          ]
+          ],
+          "rendererType": "three"
         }
       },
       "createdAt": "2026-08-16T19:09:00.405Z",
@@ -2068,7 +2071,8 @@
               ],
               "color": "#c084fc"
             }
-          ]
+          ],
+          "rendererType": "three"
         }
       },
       "createdAt": "2026-08-16T19:09:00.405Z",
@@ -2139,7 +2143,8 @@
               ],
               "color": "#f5c542"
             }
-          ]
+          ],
+          "rendererType": "three"
         }
       },
       "createdAt": "2026-08-16T19:09:00.405Z",
@@ -2227,7 +2232,8 @@
               ],
               "color": "#c084fc"
             }
-          ]
+          ],
+          "rendererType": "three"
         }
       },
       "createdAt": "2026-08-16T19:09:00.405Z",

@@ -19,6 +19,14 @@ html,body{height:100%;overflow:hidden;background:
   var(--bg);color:var(--t1);font-family:var(--sans);
   overscroll-behavior:none;touch-action:none}
 canvas{display:block;width:100vw;height:100vh}
+#threeUniverse{position:fixed;inset:0;z-index:1;display:none}
+#threeUniverse.on{display:block}
+#threeUniverse canvas{display:block;width:100vw!important;height:100vh!important}
+#worldLabels{position:fixed;inset:0;z-index:4;pointer-events:none}
+.worldlabel{position:absolute;transform:translate(-50%,-50%);font-family:var(--mono);font-size:10px;letter-spacing:1px;
+  color:var(--t1);text-shadow:0 0 14px rgba(0,0,0,.9);white-space:nowrap;text-align:center}
+.worldlabel span{display:block;font-size:8px;color:var(--t3);margin-top:2px}
+#c.three-active{display:none}
 .hud{position:fixed;top:0;left:0;right:0;padding:12px 16px;display:flex;justify-content:space-between;
   align-items:flex-start;pointer-events:none;z-index:5}
 .brand .eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--teal);text-transform:uppercase}
@@ -203,6 +211,14 @@ body.roomMode .room{top:10px;max-height:calc(100vh - 20px)}
 .scopepacket{font-family:var(--mono);font-size:8px;color:var(--t2);white-space:pre-wrap;margin-top:8px;display:none}
 .scopepacket.on{display:block}
 </style>
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://cdn.jsdelivr.net/npm/three@0.179.1/build/three.module.js",
+    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.179.1/examples/jsm/"
+  }
+}
+</script>
 </head>
 <body>
 <div class="hud">
@@ -223,6 +239,8 @@ body.roomMode .room{top:10px;max-height:calc(100vh - 20px)}
   <div class="legend" id="legend"></div>
 </div>
 <canvas id="c"></canvas>
+<div id="threeUniverse"></div>
+<div id="worldLabels"></div>
 <button id="backUni" style="display:none;position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:12;
   background:var(--sur);border:1px solid var(--teal);color:var(--teal);font-family:var(--mono);font-size:9px;
   letter-spacing:2px;font-weight:800;border-radius:14px;padding:7px 18px;cursor:pointer;backdrop-filter:blur(8px)">← BACK TO UNIVERSE</button>
@@ -12450,7 +12468,7 @@ const S = {
 const PLANETARY_SHELL_VERSION = 'planetary-system-v1';
 const PLANETARY_APPS = [
   {name:'Alice', type:'application', description:'Land-intelligence engine',
-    planet:{radius:30,surfaceType:'violet-ocean',atmosphere:true,waterCoverage:0.34,landCoverage:0.42,ringCount:1,moonCount:3,glowIntensity:1.25,rotationSpeed:0.22,orbitRadius:154,orbitSpeed:0.020,developmentLevel:6,baseColor:'#8b5cf6',accentColor:'#7dd3fc',
+    planet:{rendererType:'three',radius:30,surfaceType:'violet-ocean',atmosphere:true,waterCoverage:0.34,landCoverage:0.42,ringCount:1,moonCount:3,glowIntensity:1.25,rotationSpeed:0.22,orbitRadius:154,orbitSpeed:0.020,developmentLevel:6,baseColor:'#8b5cf6',accentColor:'#7dd3fc',
       layers:[
         {id:'presentation',name:'Land Intelligence UI',shell:'spatial-shell',modules:['parcel-room','map-view','report-view'],repo:'alice',tests:'ui smoke pending',deployment:'pages preview',dependencies:['Map Shell','Image Shell'],color:'#a78bfa'},
         {id:'ingestion',name:'Ingestion Shells',shell:'alice-ingestion',modules:['parcel ingestion','hydrology','elevation','zoning','imagery'],repo:'alice',tests:'module contract pending',deployment:'workers',dependencies:['Cloudflare','Map Shell'],color:'#7dd3fc'},
@@ -12459,7 +12477,7 @@ const PLANETARY_APPS = [
         {id:'authority',name:'Authority Core',shell:'capability-broker',modules:['identity','permissions','capabilities'],repo:'arca-kernel',tests:'broker gates pending',deployment:'kernel',dependencies:['Identity Shell'],color:'#e879f9'}
       ]}},
   {name:'TreeOS', type:'application', description:'Field operations network',
-    planet:{radius:28,surfaceType:'forest',atmosphere:true,waterCoverage:0.28,landCoverage:0.58,ringCount:0,moonCount:2,glowIntensity:1.05,rotationSpeed:0.18,orbitRadius:210,orbitSpeed:0.016,developmentLevel:7,baseColor:'#3ddc84',accentColor:'#14532d',
+    planet:{rendererType:'three',radius:28,surfaceType:'forest',atmosphere:true,waterCoverage:0.28,landCoverage:0.58,ringCount:0,moonCount:2,glowIntensity:1.05,rotationSpeed:0.18,orbitRadius:210,orbitSpeed:0.016,developmentLevel:7,baseColor:'#3ddc84',accentColor:'#14532d',
       layers:[
         {id:'presentation',name:'Presentation / UI',shell:'spatial-shell',modules:['website','field-ui','admin'],repo:'treeos',path:'apps/web',tests:'41 / 43 passing',deployment:'Cloudflare Pages',dependencies:['Identity Shell','Map Shell'],color:'#86efac'},
         {id:'operations',name:'TreeOS Operations',shell:'operations-shell',modules:['jobs','equipment','employees','customers'],repo:'treeos',path:'packages/operations',tests:'domain tests pending',deployment:'Workers API',dependencies:['Accounting Shell','Equipment Ledger'],color:'#3ddc84'},
@@ -12468,27 +12486,27 @@ const PLANETARY_APPS = [
         {id:'authority',name:'Capability + Authority Core',shell:'capability-broker',modules:['identity','capability-broker','permissions'],repo:'arca-kernel',path:'packages/core/src/capability-broker.ts',tests:'broker gates pending',deployment:'kernel service',dependencies:['Identity Shell'],color:'#c084fc'}
       ]}},
   {name:'Vyro', type:'application', description:'Commerce and gear storefront system',
-    planet:{radius:24,surfaceType:'ember-metal',atmosphere:true,waterCoverage:0.08,landCoverage:0.7,ringCount:2,moonCount:1,glowIntensity:1.08,rotationSpeed:0.26,orbitRadius:262,orbitSpeed:0.013,developmentLevel:5,baseColor:'#f97316',accentColor:'#f5c542',
+    planet:{rendererType:'three',radius:24,surfaceType:'ember-metal',atmosphere:true,waterCoverage:0.08,landCoverage:0.7,ringCount:2,moonCount:1,glowIntensity:1.08,rotationSpeed:0.26,orbitRadius:262,orbitSpeed:0.013,developmentLevel:5,baseColor:'#f97316',accentColor:'#f5c542',
       layers:[
         {id:'presentation',name:'Storefront Shell',shell:'commerce-ui-shell',modules:['catalog','creative studio entry','product pages'],repo:'vyro',tests:'storefront smoke external',deployment:'Cloudflare Pages',dependencies:['Image Shell'],color:'#fb923c'},
         {id:'commerce',name:'Commerce Core',shell:'commerce-shell',modules:['checkout','orders','catalog sync'],repo:'vyro',tests:'external project',deployment:'production storefront',dependencies:['Stripe','Printify'],color:'#f5c542'},
         {id:'authority',name:'Customer Authority',shell:'identity-shell',modules:['login','permissions','receipts'],repo:'auth-shell',tests:'contract pending',deployment:'shared shell',dependencies:['Identity Shell'],color:'#c084fc'}
       ]}},
   {name:'Control Map', type:'application', description:'Spatial command and map control shell',
-    planet:{radius:23,surfaceType:'ocean-grid',atmosphere:true,waterCoverage:0.62,landCoverage:0.24,ringCount:0,moonCount:3,glowIntensity:1.15,rotationSpeed:0.2,orbitRadius:314,orbitSpeed:0.011,developmentLevel:5,baseColor:'#4e9fff',accentColor:'#2dd4bf',
+    planet:{rendererType:'three',radius:23,surfaceType:'ocean-grid',atmosphere:true,waterCoverage:0.62,landCoverage:0.24,ringCount:0,moonCount:3,glowIntensity:1.15,rotationSpeed:0.2,orbitRadius:314,orbitSpeed:0.011,developmentLevel:5,baseColor:'#4e9fff',accentColor:'#2dd4bf',
       layers:[
         {id:'map-ui',name:'Map UI',shell:'map-shell',modules:['layers','markers','drawing tools'],repo:'map-shell',tests:'visual smoke pending',deployment:'shared module',dependencies:['FieldTrace'],color:'#4e9fff'},
         {id:'spatial-data',name:'Spatial Data',shell:'geo-data-shell',modules:['parcels','overlays','routes'],repo:'fieldtrace',tests:'adapter checks pending',deployment:'worker/data',dependencies:['Alice'],color:'#2dd4bf'},
         {id:'authority',name:'Map Authority',shell:'capability-broker',modules:['scope gates','write permissions'],repo:'arca-kernel',tests:'broker gates pending',deployment:'kernel',dependencies:['ARCA'],color:'#c084fc'}
       ]}},
   {name:'Gear Room', type:'application', description:'Equipment, assets, and operational gear room',
-    planet:{radius:21,surfaceType:'iron-crater',atmosphere:false,waterCoverage:0.04,landCoverage:0.82,ringCount:1,moonCount:0,glowIntensity:0.78,rotationSpeed:0.16,orbitRadius:366,orbitSpeed:0.009,developmentLevel:4,baseColor:'#94a3b8',accentColor:'#f5c542',
+    planet:{rendererType:'three',radius:21,surfaceType:'iron-crater',atmosphere:false,waterCoverage:0.04,landCoverage:0.82,ringCount:1,moonCount:0,glowIntensity:0.78,rotationSpeed:0.16,orbitRadius:366,orbitSpeed:0.009,developmentLevel:4,baseColor:'#94a3b8',accentColor:'#f5c542',
       layers:[
         {id:'assets',name:'Asset Inventory',shell:'equipment-shell',modules:['equipment','tools','maintenance'],repo:'treeos',tests:'asset tests pending',deployment:'TreeOS module',dependencies:['Equipment Ledger'],color:'#94a3b8'},
         {id:'accounting',name:'Cost + Ledger',shell:'accounting-shell',modules:['job costing','depreciation','repair history'],repo:'accounting-shell',tests:'ledger checks pending',deployment:'shared shell',dependencies:['Tree Accounting Shell'],color:'#f5c542'}
       ]}},
   {name:'Creative Studio', type:'application', description:'Media, image, and creative production shell',
-    planet:{radius:25,surfaceType:'aurora',atmosphere:true,waterCoverage:0.38,landCoverage:0.36,ringCount:1,moonCount:2,glowIntensity:1.32,rotationSpeed:0.28,orbitRadius:420,orbitSpeed:0.0075,developmentLevel:6,baseColor:'#e879f9',accentColor:'#a78bfa',
+    planet:{rendererType:'three',radius:25,surfaceType:'aurora',atmosphere:true,waterCoverage:0.38,landCoverage:0.36,ringCount:1,moonCount:2,glowIntensity:1.32,rotationSpeed:0.28,orbitRadius:420,orbitSpeed:0.0075,developmentLevel:6,baseColor:'#e879f9',accentColor:'#a78bfa',
       layers:[
         {id:'studio-ui',name:'Creative UI',shell:'image-shell',modules:['canvas','mockups','asset browser'],repo:'image-shell',tests:'visual checks pending',deployment:'shared module',dependencies:['Vyro'],color:'#e879f9'},
         {id:'media-core',name:'Media Core',shell:'media-shell',modules:['generation','storage','transformations'],repo:'image-shell',tests:'pipeline pending',deployment:'workers/r2',dependencies:['Cloudflare','Ollama'],color:'#a78bfa'},
@@ -13336,6 +13354,7 @@ function drawPlanet(p,e,pc,RR,col,hc,isFlash,glow){
 }
 let t=0;
 function frame(){
+  if(window.THREE_UNIVERSE_ACTIVE){requestAnimationFrame(frame);return}
   t+=0.016;
   if(autoSpin)tYaw+=0.0016;
   yaw+=(tYaw-yaw)*0.1;pitch+=(tPitch-pitch)*0.1;dist+=(tDist-dist)*0.08;
@@ -13498,7 +13517,256 @@ document.getElementById('expBtn').onclick=()=>{
   document.getElementById('expJson').textContent=JSON.stringify(THEME,null,2);
   expanel.classList.add('on');
 };
+window.UCC_STATE={S:S,PLANETARY_APPS:PLANETARY_APPS,PLANETARY_SHELL_VERSION:PLANETARY_SHELL_VERSION};
+window.UCC_API={
+  state:S,
+  apps:PLANETARY_APPS,
+  planetConfig:planetConfig,
+  identityColor:identityColor,
+  healthColor:e=>HEALTH_COLOR[e.health]||'#5a6080',
+  selectEntity(id){
+    selected=id;relatedSet=new Set();
+    if(id){
+      relatedSet.add(id);
+      for(const r of S.relationships){
+        if(r.sourceId===id&&byId[r.targetId])relatedSet.add(r.targetId);
+        if(r.targetId===id&&byId[r.sourceId])relatedSet.add(r.sourceId);
+      }
+    }
+    showInspector(id);
+  },
+  enterRoom(id){enterRoom(id)}
+};
 try{frame()}catch(err){document.body.innerHTML='<div style="padding:20px;font-family:monospace;color:#ff5c5c">Render error: '+err+'</div>'}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+
+const host=document.getElementById('threeUniverse');
+const labelsHost=document.getElementById('worldLabels');
+const fallbackCanvas=document.getElementById('c');
+const api=window.UCC_API;
+const state=api.state;
+const byName=Object.fromEntries(state.entities.map(e=>[e.name,e]));
+const worlds=state.planetarySystem.apps.map(name=>byName[name]).filter(Boolean);
+
+class EntitySceneCompiler{
+  constructor(entities){this.entities=entities}
+  compile(){return this.entities.map((entity,index)=>({entity,index,planet:api.planetConfig(entity,index)}))}
+}
+
+class PlanetMaterial{
+  static texture(entity,planet){
+    const size=256,canvas=document.createElement('canvas'),ctx=canvas.getContext('2d');
+    canvas.width=size;canvas.height=size;
+    const base=planet.baseColor||api.identityColor(entity),accent=planet.accentColor||'#9aa1b8';
+    const g=ctx.createLinearGradient(0,0,size,size);
+    g.addColorStop(0,shade(base,44));g.addColorStop(.42,base);g.addColorStop(1,shade(base,-72));
+    ctx.fillStyle=g;ctx.fillRect(0,0,size,size);
+    const seed=hash(entity.id+entity.name);
+    for(let i=0;i<34;i++){
+      const y=((seed+i*47)%size),x=((seed>>3)+i*71)%size,w=34+((seed+i*13)%88),h=4+((seed+i*19)%20);
+      ctx.globalAlpha=.12+((seed+i*5)%22)/100;
+      ctx.fillStyle=i%3===0?accent:shade(accent,i%2?28:-30);
+      ctx.beginPath();ctx.ellipse(x,y,w,h,Math.sin(i+seed)*.75,0,Math.PI*2);ctx.fill();
+    }
+    if((planet.waterCoverage||0)>0.22){
+      ctx.globalAlpha=.24;ctx.fillStyle='#7dd3fc';
+      for(let i=0;i<10;i++){ctx.beginPath();ctx.ellipse((i*83+seed)%size,(i*41+seed)%size,18+planet.waterCoverage*38,5+i%4,Math.sin(i),0,7);ctx.fill()}
+    }
+    if((planet.developmentLevel||0)>4){
+      ctx.globalAlpha=.65;ctx.fillStyle='#f8fafc';
+      for(let i=0;i<planet.developmentLevel*6;i++){ctx.fillRect((seed+i*29)%size,(seed+i*61)%size,1.4,1.4)}
+    }
+    const tex=new THREE.CanvasTexture(canvas);
+    tex.colorSpace=THREE.SRGBColorSpace;
+    tex.anisotropy=4;
+    return tex;
+  }
+  static create(entity,planet){
+    return new THREE.MeshStandardMaterial({
+      map:this.texture(entity,planet),
+      roughness:.72,
+      metalness:planet.surfaceType&&planet.surfaceType.includes('metal') ? .42 : .08,
+      emissive:new THREE.Color(planet.baseColor||api.identityColor(entity)).multiplyScalar(.045),
+      emissiveIntensity:.35
+    });
+  }
+}
+
+class Planet{
+  constructor(spec){
+    this.spec=spec;this.entity=spec.entity;this.planet=spec.planet;
+    this.group=new THREE.Group();this.group.userData.entityId=this.entity.id;
+    this.radius=(this.planet.radius||24)/18;
+    this.orbitRadius=(this.planet.orbitRadius||180)/38;
+    this.orbitSpeed=this.planet.orbitSpeed||.01;
+    this.orbitAngle=(spec.index/worlds.length)*Math.PI*2;
+    this.body=this.createBody();this.group.add(this.body);
+    this.atmosphere=this.createAtmosphere();if(this.atmosphere)this.group.add(this.atmosphere);
+    this.rings=this.createRings();this.rings.forEach(r=>this.group.add(r));
+    this.moons=this.createMoons();this.moons.forEach(m=>this.group.add(m));
+    this.label=this.createLabel();
+  }
+  createBody(){
+    const mesh=new THREE.Mesh(new THREE.SphereGeometry(this.radius,64,48),PlanetMaterial.create(this.entity,this.planet));
+    mesh.castShadow=true;mesh.receiveShadow=true;mesh.userData.entityId=this.entity.id;return mesh;
+  }
+  createAtmosphere(){
+    if(!this.planet.atmosphere)return null;
+    const mat=new THREE.MeshBasicMaterial({color:this.planet.accentColor||api.identityColor(this.entity),transparent:true,opacity:.16,side:THREE.BackSide,blending:THREE.AdditiveBlending,depthWrite:false});
+    return new THREE.Mesh(new THREE.SphereGeometry(this.radius*1.08,64,32),mat);
+  }
+  createRings(){
+    const out=[];for(let i=0;i<(this.planet.ringCount||0);i++){
+      const geo=new THREE.RingGeometry(this.radius*(1.55+i*.24),this.radius*(1.68+i*.24),96);
+      const mat=new THREE.MeshBasicMaterial({color:i%2?this.planet.accentColor:this.planet.baseColor,transparent:true,opacity:.32,side:THREE.DoubleSide,depthWrite:false});
+      const ring=new THREE.Mesh(geo,mat);ring.rotation.x=Math.PI/2.65;ring.rotation.z=-.24;out.push(ring);
+    }return out;
+  }
+  createMoons(){
+    const out=[];for(let i=0;i<(this.planet.moonCount||0);i++){
+      const pivot=new THREE.Group(),dist=this.radius*(2.05+i*.58),r=Math.max(.08,this.radius*(.12+i*.02));
+      const moon=new THREE.Mesh(new THREE.SphereGeometry(r,24,16),new THREE.MeshStandardMaterial({color:i%2?this.planet.accentColor:'#cbd5e1',roughness:.86}));
+      moon.position.set(dist,0,0);moon.castShadow=true;moon.userData.entityId=this.entity.id;pivot.add(moon);
+      pivot.rotation.x=.38+i*.2;pivot.userData={orbitSpeed:.25+i*.09,seed:i+this.spec.index};out.push(pivot);
+    }return out;
+  }
+  createLabel(){
+    const el=document.createElement('div');el.className='worldlabel';
+    el.innerHTML=`${escapeHtml(this.entity.name)}<span>${escapeHtml(this.entity.status)} · ${escapeHtml(this.entity.health)}</span>`;
+    labelsHost.appendChild(el);return el;
+  }
+  setPosition(t){
+    const a=this.orbitAngle+t*this.orbitSpeed;
+    this.group.position.set(Math.cos(a)*this.orbitRadius,Math.sin(this.spec.index*2.1+t*.35)*.8,Math.sin(a)*this.orbitRadius);
+  }
+  tick(t,active){
+    this.body.rotation.y+=this.planet.rotationSpeed*.006;
+    if(this.atmosphere)this.atmosphere.rotation.y-=this.planet.rotationSpeed*.002;
+    this.moons.forEach(m=>m.rotation.y+=m.userData.orbitSpeed*.01);
+    const scale=active?1.08:1;this.group.scale.lerp(new THREE.Vector3(scale,scale,scale),.08);
+  }
+  dispose(){
+    this.label.remove();
+    this.group.traverse(o=>{if(o.geometry)o.geometry.dispose();if(o.material){if(o.material.map)o.material.map.dispose();o.material.dispose()}});
+  }
+}
+
+class Starfield{
+  constructor(){
+    const count=1600,positions=new Float32Array(count*3),colors=new Float32Array(count*3);
+    for(let i=0;i<count;i++){
+      const r=55+Math.random()*130,th=Math.random()*Math.PI*2,ph=Math.acos(Math.random()*2-1);
+      positions[i*3]=Math.sin(ph)*Math.cos(th)*r;positions[i*3+1]=Math.cos(ph)*r;positions[i*3+2]=Math.sin(ph)*Math.sin(th)*r;
+      const c=new THREE.Color().setHSL(.58+Math.random()*.12,.28,.58+Math.random()*.34);
+      colors[i*3]=c.r;colors[i*3+1]=c.g;colors[i*3+2]=c.b;
+    }
+    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(positions,3));geo.setAttribute('color',new THREE.BufferAttribute(colors,3));
+    this.points=new THREE.Points(geo,new THREE.PointsMaterial({size:.08,vertexColors:true,depthWrite:false}));
+  }
+}
+
+class OrbitPath{
+  static create(radius,color){
+    const pts=[];for(let i=0;i<=160;i++){const a=i/160*Math.PI*2;pts.push(new THREE.Vector3(Math.cos(a)*radius,0,Math.sin(a)*radius))}
+    const geo=new THREE.BufferGeometry().setFromPoints(pts);
+    return new THREE.LineLoop(geo,new THREE.LineBasicMaterial({color:new THREE.Color(color),transparent:true,opacity:.18}));
+  }
+}
+
+class UniverseScene{
+  constructor(){
+    this.clock=new THREE.Clock();this.scene=new THREE.Scene();this.scene.fog=new THREE.FogExp2(0x03040a,.018);
+    this.camera=new THREE.PerspectiveCamera(52,innerWidth/innerHeight,.1,500);this.camera.position.set(0,8,20);
+    this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:true,powerPreference:'high-performance'});
+    this.renderer.setPixelRatio(Math.min(devicePixelRatio||1,1.75));this.renderer.setSize(innerWidth,innerHeight);
+    this.renderer.shadowMap.enabled=true;this.renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+    host.appendChild(this.renderer.domElement);
+    this.controls=new OrbitControls(this.camera,this.renderer.domElement);
+    this.controls.enableDamping=true;this.controls.dampingFactor=.06;this.controls.minDistance=7;this.controls.maxDistance=38;
+    this.raycaster=new THREE.Raycaster();this.pointer=new THREE.Vector2();this.planets=[];this.selected=null;this.flyTarget=null;
+    this.setupLights();this.setupScene();this.bind();
+  }
+  setupLights(){
+    this.scene.add(new THREE.AmbientLight(0x9fb7ff,.38));
+    const sun=new THREE.DirectionalLight(0xffffff,2.2);sun.position.set(-14,10,18);sun.castShadow=true;this.scene.add(sun);
+    const rim=new THREE.PointLight(0x2dd4bf,1.1,90);rim.position.set(18,-4,-18);this.scene.add(rim);
+  }
+  setupScene(){
+    this.scene.add(new Starfield().points);
+    const specs=new EntitySceneCompiler(worlds).compile();
+    specs.forEach(spec=>{
+      const planet=new Planet(spec);planet.setPosition(0);this.planets.push(planet);this.scene.add(planet.group);
+      this.scene.add(OrbitPath.create(planet.orbitRadius,spec.planet.accentColor||api.identityColor(spec.entity)));
+    });
+  }
+  bind(){
+    addEventListener('resize',()=>this.resize());
+    this.renderer.domElement.addEventListener('pointermove',e=>this.onPointer(e,false));
+    this.renderer.domElement.addEventListener('click',e=>this.onPointer(e,true));
+    this.renderer.domElement.addEventListener('dblclick',()=>{if(this.selected)api.enterRoom(this.selected.entity.id)});
+    document.addEventListener('visibilitychange',()=>{this.paused=document.hidden});
+  }
+  resize(){this.camera.aspect=innerWidth/innerHeight;this.camera.updateProjectionMatrix();this.renderer.setSize(innerWidth,innerHeight)}
+  onPointer(event,commit){
+    const r=this.renderer.domElement.getBoundingClientRect();
+    this.pointer.x=((event.clientX-r.left)/r.width)*2-1;this.pointer.y=-((event.clientY-r.top)/r.height)*2+1;
+    this.raycaster.setFromCamera(this.pointer,this.camera);
+    const hits=this.raycaster.intersectObjects(this.planets.map(p=>p.body),false);
+    this.hover=hits.length?this.planets.find(p=>p.entity.id===hits[0].object.userData.entityId):null;
+    this.renderer.domElement.style.cursor=this.hover?'pointer':'grab';
+    if(commit&&this.hover)this.select(this.hover);
+  }
+  select(planet){
+    this.selected=planet;api.selectEntity(planet.entity.id);
+    const dir=planet.group.position.clone().normalize();
+    this.flyTarget={target:planet.group.position.clone(),camera:planet.group.position.clone().add(dir.multiplyScalar(5.2)).add(new THREE.Vector3(0,1.7,0))};
+  }
+  updateLabels(){
+    const v=new THREE.Vector3();
+    this.planets.forEach(p=>{
+      v.copy(p.group.position);v.project(this.camera);
+      const x=(v.x*.5+.5)*innerWidth,y=(-v.y*.5+.5)*innerHeight;
+      p.label.style.left=x+'px';p.label.style.top=(y-p.radius*28)+'px';
+      p.label.style.opacity=v.z<1?(this.selected&&!this.related(p) ? .28 : 1):0;
+    });
+  }
+  related(p){return !this.selected||p===this.selected}
+  animate(){
+    requestAnimationFrame(()=>this.animate());
+    if(this.paused)return;
+    const t=this.clock.getElapsedTime();
+    this.planets.forEach(p=>{p.setPosition(t);p.tick(t,p===this.hover||p===this.selected);p.group.visible=true;p.label.style.opacity=(!this.selected||p===this.selected)?1:.22});
+    if(this.flyTarget){
+      this.controls.target.lerp(this.flyTarget.target,.055);
+      this.camera.position.lerp(this.flyTarget.camera,.045);
+      if(this.camera.position.distanceTo(this.flyTarget.camera)<.08)this.flyTarget=null;
+    }
+    this.controls.update();this.updateLabels();this.renderer.render(this.scene,this.camera);
+  }
+}
+
+function hash(str){let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}return Math.abs(h>>>0)}
+function shade(hex,amt){const n=parseInt((hex||'#888888').slice(1),16),r=Math.max(0,Math.min(255,(n>>16)+amt)),g=Math.max(0,Math.min(255,((n>>8)&255)+amt)),b=Math.max(0,Math.min(255,(n&255)+amt));return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1)}
+function escapeHtml(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+
+try{
+  if(api&&worlds.length){
+    window.THREE_UNIVERSE_ACTIVE=true;
+    fallbackCanvas.classList.add('three-active');
+    host.classList.add('on');
+    const universe=new UniverseScene();
+    window.UCC_THREE_UNIVERSE=universe;
+    universe.animate();
+  }
+}catch(err){
+  console.error('Three universe failed; falling back to canvas renderer',err);
+  window.THREE_UNIVERSE_ACTIVE=false;
+  fallbackCanvas.classList.remove('three-active');
+  host.classList.remove('on');
+}
 </script>
 </body>
 </html>
