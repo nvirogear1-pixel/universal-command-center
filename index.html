@@ -13694,6 +13694,7 @@ class Planet{
     this.rings=this.createRings();this.rings.forEach(r=>this.group.add(r));
     this.moons=this.createMoons();this.moons.forEach(m=>this.group.add(m));
     this.innerWorld=this.createInnerWorldPreview();this.group.add(this.innerWorld);
+    this.cinematicLens=this.createCinematicAtmosphereLens();this.group.add(this.cinematicLens);
     this.label=this.createLabel();
   }
   createBody(){
@@ -13739,6 +13740,48 @@ class Planet{
       pivot.rotation.x=.38+i*.2;pivot.userData={orbitSpeed:.25+i*.09,seed:i+this.spec.index};out.push(pivot);
     }return out;
   }
+  createFloatingModuleTerritory(layer,color,layerIndex,moduleIndex,moduleCount){
+    const territory=new THREE.Group();
+    const a=(moduleIndex/moduleCount)*Math.PI*2+layerIndex*.42,dist=this.radius*(1.18+layerIndex*.075);
+    territory.position.set(Math.cos(a)*dist,(layerIndex-2)*.16+Math.sin(a*1.7)*.12,Math.sin(a)*dist);
+    territory.userData={moduleTerritory:true,layerId:layer.id,layerIndex,basePosition:territory.position.clone()};
+    const seed=hash(this.entity.id+layer.id+moduleIndex),scale=.82+seeded('territory-scale',seed)*.52;
+    const top=new THREE.Mesh(
+      new THREE.DodecahedronGeometry(.06+layerIndex*.006,1),
+      new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.28,roughness:.86,metalness:.06,transparent:true,opacity:.84})
+    );
+    top.scale.set(1.45*scale,.46*scale,1.05*scale);top.rotation.set(seeded('territory-rx',seed)*.5,seeded('territory-ry',seed)*Math.PI,seeded('territory-rz',seed)*.6);
+    territory.add(top);
+    const underside=new THREE.Mesh(
+      new THREE.ConeGeometry(.045*scale,.14*scale,6,1),
+      new THREE.MeshStandardMaterial({color:new THREE.Color(color).multiplyScalar(.42),roughness:.94,metalness:.03,transparent:true,opacity:.72})
+    );
+    underside.position.y=-.085*scale;territory.add(underside);
+    const station=new THREE.Mesh(
+      new THREE.CylinderGeometry(.018,.018,.045,8),
+      new THREE.MeshStandardMaterial({color:0xdbeafe,emissive:color,emissiveIntensity:.7,roughness:.38,metalness:.28,transparent:true,opacity:.8})
+    );
+    station.position.set(.035*scale,.055*scale,-.018*scale);territory.add(station);
+    return territory;
+  }
+  createCinematicAtmosphereLens(){
+    const root=new THREE.Group();root.visible=false;root.userData.cinematicAtmosphereLens=true;
+    const warm=new THREE.Color(this.planet.baseColor||api.identityColor(this.entity)),accent=new THREE.Color(this.planet.accentColor||'#7dd3fc');
+    for(let i=0;i<4;i++){
+      const geo=new THREE.TorusGeometry(this.radius*(1.34+i*.11),.006+i*.002,8,180);
+      const mat=new THREE.MeshBasicMaterial({color:i%2?accent:warm,transparent:true,opacity:.11+i*.035,depthWrite:false,blending:THREE.AdditiveBlending});
+      const ring=new THREE.Mesh(geo,mat);ring.rotation.x=Math.PI/2.72+i*.045;ring.rotation.z=-.28+i*.16;ring.userData.lensRing=true;root.add(ring);
+    }
+    const count=360,positions=new Float32Array(count*3),colors=new Float32Array(count*3);
+    for(let i=0;i<count;i++){
+      const a=seeded(this.entity.id+'lens-a',i)*Math.PI*2,r=this.radius*(1.18+seeded(this.entity.id+'lens-r',i)*.95),y=(seeded(this.entity.id+'lens-y',i)-.5)*this.radius*.7;
+      positions[i*3]=Math.cos(a)*r;positions[i*3+1]=y;positions[i*3+2]=Math.sin(a)*r*.72;
+      const c=i%3===0?accent:warm;colors[i*3]=c.r;colors[i*3+1]=c.g;colors[i*3+2]=c.b;
+    }
+    const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(positions,3));geo.setAttribute('color',new THREE.BufferAttribute(colors,3));
+    root.add(new THREE.Points(geo,new THREE.PointsMaterial({size:.026,vertexColors:true,transparent:true,opacity:.34,depthWrite:false,blending:THREE.AdditiveBlending,sizeAttenuation:true})));
+    return root;
+  }
   createInnerWorldPreview(){
     const root=new THREE.Group();root.visible=false;root.userData.innerWorldPreview=true;
     const layers=(this.planet.layers||[]).slice(0,5),anchors=[];
@@ -13749,11 +13792,8 @@ class Planet{
       const shell=new THREE.Mesh(ring,ringMat);shell.rotation.x=Math.PI/2+(i-.5)*.08;shell.rotation.z=i*.36;root.add(shell);
       const moduleCount=Math.max(1,(layer.modules||[]).length);
       for(let j=0;j<moduleCount;j++){
-        const a=(j/moduleCount)*Math.PI*2+i*.42,dist=this.radius*(1.18+i*.075),geo=new THREE.IcosahedronGeometry(.035+i*.004,1);
-        const mat=new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:.55,roughness:.62,metalness:.1,transparent:true,opacity:.72});
-        const island=new THREE.Mesh(geo,mat);
-        island.position.set(Math.cos(a)*dist,(i-2)*.16+Math.sin(a*1.7)*.12,Math.sin(a)*dist);
-        island.userData.layerId=layer.id;island.userData.layerIndex=i;island.userData.basePosition=island.position.clone();root.add(island);anchors.push(island.position.clone());
+        const territory=this.createFloatingModuleTerritory(layer,color,i,j,moduleCount);
+        root.add(territory);anchors.push(territory.position.clone());
       }
     });
     for(let i=1;i<anchors.length;i++){
@@ -13795,6 +13835,18 @@ class Planet{
       this.body.material.opacity=cut?Math.max(.28,1-expose*.72):this.body.userData.baseOpacity;
     }
     if(this.clouds&&this.clouds.material)this.clouds.material.opacity=selected?(activityOnly ? .12 : .18+expose*.34):.42;
+    if(this.cinematicLens){
+      this.cinematicLens.visible=!!selected;
+      this.cinematicLens.rotation.y+=selected ? .0025 : .001;
+      this.cinematicLens.rotation.z=Math.sin(t*.18)*.045;
+      this.cinematicLens.children.forEach((child,i)=>{
+        if(child.material&&'opacity' in child.material){
+          if(!child.userData.baseOpacity)child.userData.baseOpacity=child.material.opacity||1;
+          child.material.opacity=selected?child.userData.baseOpacity*(mode==='activity'?1.45:1+expose*.75):0;
+        }
+        if(child.userData.lensRing)child.rotation.z+=.0008+i*.0003;
+      });
+    }
     if(this.innerWorld){
       this.innerWorld.visible=!!selected&&!activityOnly;
       this.innerWorld.rotation.y-=.0018;
@@ -13804,7 +13856,14 @@ class Planet{
           if(!child.userData.baseOpacity)child.userData.baseOpacity=child.material.opacity||1;
           child.material.opacity=child.userData.baseOpacity*(.28+expose*.82);
         }
-        if(child.isMesh&&!child.geometry.type.includes('Torus')){
+        if(child.userData.moduleTerritory){
+          const base=child.userData.basePosition;if(base){
+            const split=explode?(1+expose*.92+child.userData.layerIndex*.12):1+expose*.22;
+            child.position.lerp(base.clone().multiplyScalar(split),.06);
+          }
+          child.rotation.y+=.0025+i*.00018;
+          child.rotation.x=Math.sin(t*.32+i)*.08;
+        }else if(child.isMesh&&!child.geometry.type.includes('Torus')){
           child.rotation.y+=.004+i*.0002;
           const base=child.userData.basePosition;if(base){
             const split=explode?(1+expose*.86+child.userData.layerIndex*.1):1+expose*.18;
@@ -13829,7 +13888,7 @@ class Starfield{
     for(let i=0;i<count;i++){
       const deep=i>2200,r=(deep?170:62)+seeded('star-r',i)*(deep?340:150),th=seeded('star-th',i)*Math.PI*2,ph=Math.acos(seeded('star-ph',i)*2-1);
       positions[i*3]=Math.sin(ph)*Math.cos(th)*r;positions[i*3+1]=Math.cos(ph)*r;positions[i*3+2]=Math.sin(ph)*Math.sin(th)*r;
-      const c=new THREE.Color().setHSL(.56+seeded('star-h',i)*.16,.18+seeded('star-s',i)*.24,deep?.38+seeded('star-l',i)*.24:.56+seeded('star-l',i)*.4);
+      const c=new THREE.Color().setHSL(.56+seeded('star-h',i)*.16,.18+seeded('star-s',i)*.24,deep ? .38+seeded('star-l',i)*.24 : .56+seeded('star-l',i)*.4);
       colors[i*3]=c.r;colors[i*3+1]=c.g;colors[i*3+2]=c.b;
     }
     const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(positions,3));geo.setAttribute('color',new THREE.BufferAttribute(colors,3));
@@ -13843,7 +13902,7 @@ class Nebula{
     for(let i=0;i<count;i++){
       const arm=i%3-1,r=36+seeded('neb-r',i)*150,th=arm*.5+seeded('neb-th',i)*1.9,ph=Math.PI/2+(seeded('neb-ph',i)-.5)*.55;
       positions[i*3]=Math.sin(ph)*Math.cos(th)*r;positions[i*3+1]=(seeded('neb-y',i)-.5)*18;positions[i*3+2]=Math.sin(ph)*Math.sin(th)*r;
-      const c=new THREE.Color().setHSL(i%4===0?.53:i%4===1?.68:.78,.32,.2+seeded('neb-l',i)*.16);
+      const c=new THREE.Color().setHSL(i%4===0 ? .53 : i%4===1 ? .68 : .78,.32,.2+seeded('neb-l',i)*.16);
       colors[i*3]=c.r;colors[i*3+1]=c.g;colors[i*3+2]=c.b;
     }
     const geo=new THREE.BufferGeometry();geo.setAttribute('position',new THREE.BufferAttribute(positions,3));geo.setAttribute('color',new THREE.BufferAttribute(colors,3));

@@ -196,6 +196,8 @@ Examples:
 
 The presentation layer can become highly immersive and brand-specific, but it must remain a projection. ARCH mode and Codex scopes must still resolve back to real entities, files, relationships, tests, permissions, and deployment state.
 
+Visual references such as Opulence, Gargantua-style cinematic space, and Avatar-like floating worlds should be treated as Experience Profile inputs. They inform rendering language, transitions, lighting, density, and mood; they do not replace the canonical graph, room profile, ARCH model, or repository boundaries.
+
 ## Entity Lifecycle
 
 Support this conceptual lifecycle:
