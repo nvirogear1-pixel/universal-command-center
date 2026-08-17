@@ -66,6 +66,8 @@ test('HTML renderer includes planet rendering hooks and preserved shell features
     'OrbitControls',
     'Raycaster',
     'EntitySceneCompiler',
+    'LIVE_ACTIVITY_SPECS',
+    'class ActivityObject',
     'drawPlanet',
     'drawOrbitPath',
     'drawSpace',

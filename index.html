@@ -13550,6 +13550,14 @@ const api=window.UCC_API;
 const state=api.state;
 const byName=Object.fromEntries(state.entities.map(e=>[e.name,e]));
 const worlds=state.planetarySystem.apps.map(name=>byName[name]).filter(Boolean);
+const LIVE_ACTIVITY_SPECS=[
+  {type:'visitor',label:'anonymous visitor',from:'Creative Studio',to:'Vyro',color:'#9aa1b8',period:18,phase:0.05},
+  {type:'owner',label:'signed-in owner',from:'Gear Room',to:'TreeOS',color:'#2dd4bf',period:24,phase:0.22},
+  {type:'agent',label:'Codex session',from:'TreeOS',to:'Control Map',color:'#a78bfa',period:21,phase:0.38},
+  {type:'deployment',label:'deployment capsule',from:'Control Map',to:'Vyro',color:'#3ddc84',period:30,phase:0.54},
+  {type:'signal',label:'field submission',from:'Alice',to:'TreeOS',color:'#4e9fff',period:16,phase:0.72},
+  {type:'warning',label:'failed job debris',from:'Vyro',to:'Gear Room',color:'#ff5c5c',period:34,phase:0.88}
+];
 
 class EntitySceneCompiler{
   constructor(entities){this.entities=entities}
@@ -13744,6 +13752,39 @@ class OrbitPath{
   }
 }
 
+class ActivityObject{
+  constructor(spec,lookup){
+    this.spec=spec;this.from=lookup.get(spec.from);this.to=lookup.get(spec.to);
+    this.group=new THREE.Group();this.group.userData.activityType=spec.type;
+    this.body=this.createBody();this.group.add(this.body);
+    this.trail=this.createTrail();this.group.add(this.trail);
+  }
+  createBody(){
+    const color=new THREE.Color(this.spec.color);
+    let geo=new THREE.SphereGeometry(.09,18,12);
+    if(this.spec.type==='deployment')geo=new THREE.CapsuleGeometry(.06,.2,6,12);
+    if(this.spec.type==='agent')geo=new THREE.OctahedronGeometry(.13,0);
+    if(this.spec.type==='warning')geo=new THREE.TetrahedronGeometry(.13,0);
+    const mat=new THREE.MeshStandardMaterial({color,emissive:color,emissiveIntensity:this.spec.type==='warning'?1.6:.7,roughness:.46,metalness:.18});
+    const mesh=new THREE.Mesh(geo,mat);mesh.castShadow=false;return mesh;
+  }
+  createTrail(){
+    const pts=[new THREE.Vector3(0,0,0),new THREE.Vector3(0,0,-.7)];
+    return new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts),new THREE.LineBasicMaterial({color:new THREE.Color(this.spec.color),transparent:true,opacity:.34}));
+  }
+  tick(t){
+    if(!this.from||!this.to)return;
+    const period=this.spec.period||20,cycle=((t/period)+this.spec.phase)%1;
+    const start=this.from.group.position,end=this.to.group.position,mid=start.clone().lerp(end,.5).add(new THREE.Vector3(0,2.6+Math.sin(cycle*Math.PI)*1.2,0));
+    const a=start.clone().lerp(mid,cycle),b=mid.clone().lerp(end,cycle),pos=a.lerp(b,cycle);
+    this.group.position.copy(pos);
+    const tangent=b.clone().sub(a).normalize();if(tangent.lengthSq()>0)this.group.lookAt(pos.clone().add(tangent));
+    const pulse=.55+.45*Math.sin(cycle*Math.PI);this.group.scale.setScalar(.7+pulse*.9);
+    this.group.visible=cycle>.03&&cycle<.97;
+    this.trail.material.opacity=.12+pulse*.28;
+  }
+}
+
 class UniverseScene{
   constructor(){
     this.clock=new THREE.Clock();this.scene=new THREE.Scene();this.scene.fog=new THREE.FogExp2(0x03040a,.018);
@@ -13757,6 +13798,7 @@ class UniverseScene{
     this.controls=new OrbitControls(this.camera,this.renderer.domElement);
     this.controls.enableDamping=true;this.controls.dampingFactor=.055;this.controls.minDistance=9;this.controls.maxDistance=78;
     this.raycaster=new THREE.Raycaster();this.pointer=new THREE.Vector2();this.planets=[];this.selected=null;this.flyTarget=null;
+    this.activities=[];
     this.setupLights();this.setupScene();this.bind();
   }
   setupLights(){
@@ -13775,6 +13817,8 @@ class UniverseScene{
       const planet=new Planet(spec);planet.setPosition(0);this.planets.push(planet);this.scene.add(planet.group);
       this.scene.add(OrbitPath.create(planet.orbitRadius,spec.planet.accentColor||api.identityColor(spec.entity)));
     });
+    const lookup=new Map(this.planets.map(p=>[p.entity.name,p]));
+    LIVE_ACTIVITY_SPECS.forEach(spec=>{const activity=new ActivityObject(spec,lookup);this.activities.push(activity);this.scene.add(activity.group)});
   }
   bind(){
     addEventListener('resize',()=>this.resize());
@@ -13813,6 +13857,8 @@ class UniverseScene{
     if(this.paused)return;
     const t=this.clock.getElapsedTime();
     this.planets.forEach(p=>{p.setPosition(t);p.tick(t,p===this.hover||p===this.selected);p.group.visible=true;p.label.style.opacity=(!this.selected||p===this.selected)?1:.22});
+    this.activities.forEach(a=>a.tick(t));
+    this.activities.forEach(a=>{a.group.visible=a.group.visible&&(!this.selected||a.from===this.selected||a.to===this.selected)});
     if(this.flyTarget){
       const d=this.camera.position.distanceTo(this.flyTarget.camera),ease=Math.max(.018,Math.min(.065,d/90));
       this.controls.target.lerp(this.flyTarget.target,ease*1.18);
