@@ -158,6 +158,44 @@ The visual representation may evolve freely. Canonical truth must not.
 
 One canonical reality, unlimited evolving projections.
 
+## Room And Experience Profiles
+
+The Command Center should support layered presentation without changing canonical truth:
+
+Canonical graph -> Room profile -> Experience profile -> Rendered world
+
+Room profiles define operational shape:
+- commands
+- work areas
+- tabs
+- permissions
+- scoped actions
+- inspection surfaces
+
+Experience profiles define immersive presentation:
+- cinematic world style
+- brand/environment language
+- ambient motion
+- transition behavior
+- HUD density
+- rendered spatial metaphor
+
+A retail/store entity may open into a full-screen cinematic storefront world. A technical module may open into an orchestration room. A property/intelligence entity may open into a map-heavy spatial room. These are different projections over the same canonical entity graph, not separate architectures.
+
+Suggested inspection stack:
+
+Experience -> Cutaway -> Room -> ARCH -> Graph -> Exploded system layers
+
+Examples:
+- TreeOS experience profile: forest / field / terrain
+- TreeOS room profile: jobs / crews / hazards / equipment
+- TreeOS arch profile: FieldTrace / auth / map engine / ledger / adapters
+- Vyro experience profile: editorial / outdoor / cinematic storefront
+- Vyro room profile: products / orders / design tools / fulfillment
+- Vyro arch profile: commerce / image shell / Stripe / Printify / ledger
+
+The presentation layer can become highly immersive and brand-specific, but it must remain a projection. ARCH mode and Codex scopes must still resolve back to real entities, files, relationships, tests, permissions, and deployment state.
+
 ## Entity Lifecycle
 
 Support this conceptual lifecycle:
