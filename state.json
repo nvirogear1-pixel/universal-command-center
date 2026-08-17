@@ -195,7 +195,122 @@
         "logicalZone": "operations"
       },
       "metadata": {
-        "description": "Field data network"
+        "description": "Field data network",
+        "planet": {
+          "radius": 28,
+          "surfaceType": "forest",
+          "atmosphere": true,
+          "waterCoverage": 0.28,
+          "landCoverage": 0.58,
+          "ringCount": 0,
+          "moonCount": 2,
+          "glowIntensity": 1.05,
+          "rotationSpeed": 0.18,
+          "orbitRadius": 210,
+          "orbitSpeed": 0.016,
+          "developmentLevel": 7,
+          "baseColor": "#3ddc84",
+          "accentColor": "#14532d",
+          "layers": [
+            {
+              "id": "presentation",
+              "name": "Presentation / UI",
+              "shell": "spatial-shell",
+              "modules": [
+                "website",
+                "field-ui",
+                "admin"
+              ],
+              "repo": "treeos",
+              "path": "apps/web",
+              "tests": "41 / 43 passing",
+              "deployment": "Cloudflare Pages",
+              "dependencies": [
+                "Identity Shell",
+                "Map Shell"
+              ],
+              "color": "#86efac"
+            },
+            {
+              "id": "operations",
+              "name": "TreeOS Operations",
+              "shell": "operations-shell",
+              "modules": [
+                "jobs",
+                "equipment",
+                "employees",
+                "customers"
+              ],
+              "repo": "treeos",
+              "path": "packages/operations",
+              "tests": "domain tests pending",
+              "deployment": "Workers API",
+              "dependencies": [
+                "Accounting Shell",
+                "Equipment Ledger"
+              ],
+              "color": "#3ddc84"
+            },
+            {
+              "id": "intelligence",
+              "name": "Intelligence Layer",
+              "shell": "knowledge-shell",
+              "modules": [
+                "mr-results",
+                "knowledge-engine",
+                "field recommendations"
+              ],
+              "repo": "treeos",
+              "path": "packages/intelligence",
+              "tests": "knowledge checks pending",
+              "deployment": "Worker pipeline",
+              "dependencies": [
+                "Alice",
+                "FieldTrace"
+              ],
+              "color": "#2dd4bf"
+            },
+            {
+              "id": "canonical",
+              "name": "Canonical Graph + Ledger",
+              "shell": "arca-graph",
+              "modules": [
+                "entity-graph",
+                "ledger",
+                "media",
+                "history"
+              ],
+              "repo": "arca-kernel",
+              "path": "packages/core",
+              "tests": "ledger replay pending",
+              "deployment": "kernel service",
+              "dependencies": [
+                "ARCA",
+                "Memory Shell"
+              ],
+              "color": "#f5c542"
+            },
+            {
+              "id": "authority",
+              "name": "Capability + Authority Core",
+              "shell": "capability-broker",
+              "modules": [
+                "identity",
+                "capability-broker",
+                "permissions"
+              ],
+              "repo": "arca-kernel",
+              "path": "packages/core/src/capability-broker.ts",
+              "tests": "broker gates pending",
+              "deployment": "kernel service",
+              "dependencies": [
+                "Identity Shell"
+              ],
+              "color": "#c084fc"
+            }
+          ]
+        },
+        "shell": true
       },
       "createdAt": "2026-08-16T19:09:00.360Z",
       "updatedAt": "2026-08-16T19:09:00.360Z"
@@ -846,7 +961,115 @@
         "lifecycle": "operational",
         "version": "0.9.0",
         "familyColor": "#8b5cf6",
-        "familyRoot": true
+        "familyRoot": true,
+        "planet": {
+          "radius": 30,
+          "surfaceType": "violet-ocean",
+          "atmosphere": true,
+          "waterCoverage": 0.34,
+          "landCoverage": 0.42,
+          "ringCount": 1,
+          "moonCount": 3,
+          "glowIntensity": 1.25,
+          "rotationSpeed": 0.22,
+          "orbitRadius": 154,
+          "orbitSpeed": 0.02,
+          "developmentLevel": 6,
+          "baseColor": "#8b5cf6",
+          "accentColor": "#7dd3fc",
+          "layers": [
+            {
+              "id": "presentation",
+              "name": "Land Intelligence UI",
+              "shell": "spatial-shell",
+              "modules": [
+                "parcel-room",
+                "map-view",
+                "report-view"
+              ],
+              "repo": "alice",
+              "tests": "ui smoke pending",
+              "deployment": "pages preview",
+              "dependencies": [
+                "Map Shell",
+                "Image Shell"
+              ],
+              "color": "#a78bfa"
+            },
+            {
+              "id": "ingestion",
+              "name": "Ingestion Shells",
+              "shell": "alice-ingestion",
+              "modules": [
+                "parcel ingestion",
+                "hydrology",
+                "elevation",
+                "zoning",
+                "imagery"
+              ],
+              "repo": "alice",
+              "tests": "module contract pending",
+              "deployment": "workers",
+              "dependencies": [
+                "Cloudflare",
+                "Map Shell"
+              ],
+              "color": "#7dd3fc"
+            },
+            {
+              "id": "scoring",
+              "name": "Analysis + Scoring",
+              "shell": "location-intelligence",
+              "modules": [
+                "environmental data",
+                "scoring",
+                "location intelligence"
+              ],
+              "repo": "alice",
+              "tests": "analysis checks pending",
+              "deployment": "worker pipeline",
+              "dependencies": [
+                "canonical graph"
+              ],
+              "color": "#5eead4"
+            },
+            {
+              "id": "canonical",
+              "name": "Canonical Memory",
+              "shell": "arca-graph",
+              "modules": [
+                "entity graph",
+                "event ledger",
+                "provenance"
+              ],
+              "repo": "arca-kernel",
+              "tests": "ledger replay pending",
+              "deployment": "kernel",
+              "dependencies": [
+                "ARCA"
+              ],
+              "color": "#fbbf24"
+            },
+            {
+              "id": "authority",
+              "name": "Authority Core",
+              "shell": "capability-broker",
+              "modules": [
+                "identity",
+                "permissions",
+                "capabilities"
+              ],
+              "repo": "arca-kernel",
+              "tests": "broker gates pending",
+              "deployment": "kernel",
+              "dependencies": [
+                "Identity Shell"
+              ],
+              "color": "#e879f9"
+            }
+          ]
+        },
+        "shell": false
       },
       "createdAt": "2026-08-16T19:09:00.365Z",
       "updatedAt": "2026-08-16T19:09:00.373Z"
@@ -1674,6 +1897,341 @@
       },
       "createdAt": "2026-08-16T19:09:00.396Z",
       "updatedAt": "2026-08-16T19:09:00.396Z"
+    },
+    {
+      "id": "ucc-shell-vyro",
+      "type": "application",
+      "name": "Vyro",
+      "description": null,
+      "status": "RUNNING",
+      "health": "HEALTHY",
+      "capabilities": [],
+      "location": {
+        "logicalZone": "command-center"
+      },
+      "metadata": {
+        "description": "Commerce and gear storefront system",
+        "shell": true,
+        "projectionOnly": true,
+        "planet": {
+          "radius": 24,
+          "surfaceType": "ember-metal",
+          "atmosphere": true,
+          "waterCoverage": 0.08,
+          "landCoverage": 0.7,
+          "ringCount": 2,
+          "moonCount": 1,
+          "glowIntensity": 1.08,
+          "rotationSpeed": 0.26,
+          "orbitRadius": 262,
+          "orbitSpeed": 0.013,
+          "developmentLevel": 5,
+          "baseColor": "#f97316",
+          "accentColor": "#f5c542",
+          "layers": [
+            {
+              "id": "presentation",
+              "name": "Storefront Shell",
+              "shell": "commerce-ui-shell",
+              "modules": [
+                "catalog",
+                "creative studio entry",
+                "product pages"
+              ],
+              "repo": "vyro",
+              "tests": "storefront smoke external",
+              "deployment": "Cloudflare Pages",
+              "dependencies": [
+                "Image Shell"
+              ],
+              "color": "#fb923c"
+            },
+            {
+              "id": "commerce",
+              "name": "Commerce Core",
+              "shell": "commerce-shell",
+              "modules": [
+                "checkout",
+                "orders",
+                "catalog sync"
+              ],
+              "repo": "vyro",
+              "tests": "external project",
+              "deployment": "production storefront",
+              "dependencies": [
+                "Stripe",
+                "Printify"
+              ],
+              "color": "#f5c542"
+            },
+            {
+              "id": "authority",
+              "name": "Customer Authority",
+              "shell": "identity-shell",
+              "modules": [
+                "login",
+                "permissions",
+                "receipts"
+              ],
+              "repo": "auth-shell",
+              "tests": "contract pending",
+              "deployment": "shared shell",
+              "dependencies": [
+                "Identity Shell"
+              ],
+              "color": "#c084fc"
+            }
+          ]
+        }
+      },
+      "createdAt": "2026-08-16T19:09:00.405Z",
+      "updatedAt": "2026-08-16T19:09:00.405Z"
+    },
+    {
+      "id": "ucc-shell-control-map",
+      "type": "application",
+      "name": "Control Map",
+      "description": null,
+      "status": "RUNNING",
+      "health": "HEALTHY",
+      "capabilities": [],
+      "location": {
+        "logicalZone": "command-center"
+      },
+      "metadata": {
+        "description": "Spatial command and map control shell",
+        "shell": true,
+        "projectionOnly": true,
+        "planet": {
+          "radius": 23,
+          "surfaceType": "ocean-grid",
+          "atmosphere": true,
+          "waterCoverage": 0.62,
+          "landCoverage": 0.24,
+          "ringCount": 0,
+          "moonCount": 3,
+          "glowIntensity": 1.15,
+          "rotationSpeed": 0.2,
+          "orbitRadius": 314,
+          "orbitSpeed": 0.011,
+          "developmentLevel": 5,
+          "baseColor": "#4e9fff",
+          "accentColor": "#2dd4bf",
+          "layers": [
+            {
+              "id": "map-ui",
+              "name": "Map UI",
+              "shell": "map-shell",
+              "modules": [
+                "layers",
+                "markers",
+                "drawing tools"
+              ],
+              "repo": "map-shell",
+              "tests": "visual smoke pending",
+              "deployment": "shared module",
+              "dependencies": [
+                "FieldTrace"
+              ],
+              "color": "#4e9fff"
+            },
+            {
+              "id": "spatial-data",
+              "name": "Spatial Data",
+              "shell": "geo-data-shell",
+              "modules": [
+                "parcels",
+                "overlays",
+                "routes"
+              ],
+              "repo": "fieldtrace",
+              "tests": "adapter checks pending",
+              "deployment": "worker/data",
+              "dependencies": [
+                "Alice"
+              ],
+              "color": "#2dd4bf"
+            },
+            {
+              "id": "authority",
+              "name": "Map Authority",
+              "shell": "capability-broker",
+              "modules": [
+                "scope gates",
+                "write permissions"
+              ],
+              "repo": "arca-kernel",
+              "tests": "broker gates pending",
+              "deployment": "kernel",
+              "dependencies": [
+                "ARCA"
+              ],
+              "color": "#c084fc"
+            }
+          ]
+        }
+      },
+      "createdAt": "2026-08-16T19:09:00.405Z",
+      "updatedAt": "2026-08-16T19:09:00.405Z"
+    },
+    {
+      "id": "ucc-shell-gear-room",
+      "type": "application",
+      "name": "Gear Room",
+      "description": null,
+      "status": "RUNNING",
+      "health": "HEALTHY",
+      "capabilities": [],
+      "location": {
+        "logicalZone": "command-center"
+      },
+      "metadata": {
+        "description": "Equipment, assets, and operational gear room",
+        "shell": true,
+        "projectionOnly": true,
+        "planet": {
+          "radius": 21,
+          "surfaceType": "iron-crater",
+          "atmosphere": false,
+          "waterCoverage": 0.04,
+          "landCoverage": 0.82,
+          "ringCount": 1,
+          "moonCount": 0,
+          "glowIntensity": 0.78,
+          "rotationSpeed": 0.16,
+          "orbitRadius": 366,
+          "orbitSpeed": 0.009,
+          "developmentLevel": 4,
+          "baseColor": "#94a3b8",
+          "accentColor": "#f5c542",
+          "layers": [
+            {
+              "id": "assets",
+              "name": "Asset Inventory",
+              "shell": "equipment-shell",
+              "modules": [
+                "equipment",
+                "tools",
+                "maintenance"
+              ],
+              "repo": "treeos",
+              "tests": "asset tests pending",
+              "deployment": "TreeOS module",
+              "dependencies": [
+                "Equipment Ledger"
+              ],
+              "color": "#94a3b8"
+            },
+            {
+              "id": "accounting",
+              "name": "Cost + Ledger",
+              "shell": "accounting-shell",
+              "modules": [
+                "job costing",
+                "depreciation",
+                "repair history"
+              ],
+              "repo": "accounting-shell",
+              "tests": "ledger checks pending",
+              "deployment": "shared shell",
+              "dependencies": [
+                "Tree Accounting Shell"
+              ],
+              "color": "#f5c542"
+            }
+          ]
+        }
+      },
+      "createdAt": "2026-08-16T19:09:00.405Z",
+      "updatedAt": "2026-08-16T19:09:00.405Z"
+    },
+    {
+      "id": "ucc-shell-creative-studio",
+      "type": "application",
+      "name": "Creative Studio",
+      "description": null,
+      "status": "RUNNING",
+      "health": "HEALTHY",
+      "capabilities": [],
+      "location": {
+        "logicalZone": "command-center"
+      },
+      "metadata": {
+        "description": "Media, image, and creative production shell",
+        "shell": true,
+        "projectionOnly": true,
+        "planet": {
+          "radius": 25,
+          "surfaceType": "aurora",
+          "atmosphere": true,
+          "waterCoverage": 0.38,
+          "landCoverage": 0.36,
+          "ringCount": 1,
+          "moonCount": 2,
+          "glowIntensity": 1.32,
+          "rotationSpeed": 0.28,
+          "orbitRadius": 420,
+          "orbitSpeed": 0.0075,
+          "developmentLevel": 6,
+          "baseColor": "#e879f9",
+          "accentColor": "#a78bfa",
+          "layers": [
+            {
+              "id": "studio-ui",
+              "name": "Creative UI",
+              "shell": "image-shell",
+              "modules": [
+                "canvas",
+                "mockups",
+                "asset browser"
+              ],
+              "repo": "image-shell",
+              "tests": "visual checks pending",
+              "deployment": "shared module",
+              "dependencies": [
+                "Vyro"
+              ],
+              "color": "#e879f9"
+            },
+            {
+              "id": "media-core",
+              "name": "Media Core",
+              "shell": "media-shell",
+              "modules": [
+                "generation",
+                "storage",
+                "transformations"
+              ],
+              "repo": "image-shell",
+              "tests": "pipeline pending",
+              "deployment": "workers/r2",
+              "dependencies": [
+                "Cloudflare",
+                "Ollama"
+              ],
+              "color": "#a78bfa"
+            },
+            {
+              "id": "authority",
+              "name": "Creative Authority",
+              "shell": "capability-broker",
+              "modules": [
+                "usage limits",
+                "asset permissions"
+              ],
+              "repo": "arca-kernel",
+              "tests": "broker gates pending",
+              "deployment": "kernel",
+              "dependencies": [
+                "Identity Shell"
+              ],
+              "color": "#c084fc"
+            }
+          ]
+        }
+      },
+      "createdAt": "2026-08-16T19:09:00.405Z",
+      "updatedAt": "2026-08-16T19:09:00.405Z"
     }
   ],
   "relationships": [
@@ -2639,6 +3197,46 @@
       "status": "ACTIVE",
       "createdAt": "2026-08-16T19:09:00.364Z",
       "updatedAt": "2026-08-16T19:09:00.364Z"
+    },
+    {
+      "id": "ucc-rel-ucc-shell-vyro-contained",
+      "type": "contains",
+      "sourceId": "95874c23-832d-4877-adda-f4e8bb3ed70a",
+      "targetId": "ucc-shell-vyro",
+      "metadata": {
+        "projection": "planetary-system-v1",
+        "reason": "initial command-center planet"
+      }
+    },
+    {
+      "id": "ucc-rel-ucc-shell-control-map-contained",
+      "type": "contains",
+      "sourceId": "95874c23-832d-4877-adda-f4e8bb3ed70a",
+      "targetId": "ucc-shell-control-map",
+      "metadata": {
+        "projection": "planetary-system-v1",
+        "reason": "initial command-center planet"
+      }
+    },
+    {
+      "id": "ucc-rel-ucc-shell-gear-room-contained",
+      "type": "contains",
+      "sourceId": "95874c23-832d-4877-adda-f4e8bb3ed70a",
+      "targetId": "ucc-shell-gear-room",
+      "metadata": {
+        "projection": "planetary-system-v1",
+        "reason": "initial command-center planet"
+      }
+    },
+    {
+      "id": "ucc-rel-ucc-shell-creative-studio-contained",
+      "type": "contains",
+      "sourceId": "95874c23-832d-4877-adda-f4e8bb3ed70a",
+      "targetId": "ucc-shell-creative-studio",
+      "metadata": {
+        "projection": "planetary-system-v1",
+        "reason": "initial command-center planet"
+      }
     }
   ],
   "events": [
@@ -12134,5 +12732,29 @@
     "TreeOS": "8c77d6e8-2a33-4cd0-a418-08b5bed0d2c0",
     "ARCA": "11f96812-cedf-41e9-975d-cc5ddd79fcab",
     "BuildBoard": "5d621d2b-485f-41d9-a88c-9dbb5e851a6a"
+  },
+  "planetarySystem": {
+    "schemaVersion": "planetary-system-v1",
+    "evolutionHooks": [
+      "moonCount",
+      "ringCount",
+      "surfaceType",
+      "waterCoverage",
+      "landCoverage",
+      "developmentLevel",
+      "satellites",
+      "cityLights",
+      "layers",
+      "conduits",
+      "layerWorkspaces"
+    ],
+    "apps": [
+      "Alice",
+      "TreeOS",
+      "Vyro",
+      "Control Map",
+      "Gear Room",
+      "Creative Studio"
+    ]
   }
 }

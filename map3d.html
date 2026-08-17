@@ -13,7 +13,10 @@
   --sans:'Inter',system-ui,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0}
-html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--t1);font-family:var(--sans);
+html,body{height:100%;overflow:hidden;background:
+  radial-gradient(circle at 18% 12%,rgba(139,92,246,.18),transparent 28%),
+  radial-gradient(circle at 78% 74%,rgba(45,212,191,.12),transparent 32%),
+  var(--bg);color:var(--t1);font-family:var(--sans);
   overscroll-behavior:none;touch-action:none}
 canvas{display:block;width:100vw;height:100vh}
 .hud{position:fixed;top:0;left:0;right:0;padding:12px 16px;display:flex;justify-content:space-between;
@@ -21,14 +24,14 @@ canvas{display:block;width:100vw;height:100vh}
 .brand .eyebrow{font-family:var(--mono);font-size:9px;letter-spacing:3px;color:var(--teal);text-transform:uppercase}
 .brand h1{font-size:15px;font-weight:800}
 .brand .sub{font-family:var(--mono);font-size:9px;color:var(--t3)}
-.legend{background:var(--sur);border:1px solid var(--bdr);border-radius:8px;padding:8px 12px;
-  font-family:var(--mono);font-size:9px;color:var(--t2);backdrop-filter:blur(6px)}
+.legend{background:rgba(9,11,18,.48);border:1px solid rgba(90,96,128,.35);border-radius:8px;padding:8px 12px;
+  font-family:var(--mono);font-size:9px;color:var(--t2);backdrop-filter:blur(8px);box-shadow:0 0 28px rgba(0,0,0,.18)}
 .legend div{display:flex;align-items:center;gap:6px;padding:1px 0}
 .sw{width:14px;height:2px;border-radius:1px}
-.themerow{display:flex;gap:2px;border:1px solid var(--bdr2);border-radius:6px;overflow:hidden;
+.themerow{display:flex;gap:2px;border:1px solid rgba(90,96,128,.38);border-radius:6px;overflow:hidden;
   margin-top:8px;pointer-events:auto;width:fit-content}
 .themerow button{font-family:var(--mono);font-size:8px;letter-spacing:1.5px;padding:5px 10px;
-  background:var(--sur);color:var(--t3);border:none;cursor:pointer}
+  background:rgba(9,11,18,.54);color:var(--t3);border:none;cursor:pointer}
 .themerow button.on{background:var(--teal);color:var(--bg);font-weight:800}
 .themerow button.exp{color:var(--purple)}
 .starpanel{position:fixed;left:50%;top:56%;transform:translate(-50%,-50%);width:min(380px,calc(100vw - 24px));
@@ -75,7 +78,7 @@ canvas{display:block;width:100vw;height:100vh}
   background:#0a0b10;border:1px solid var(--bdr);border-radius:6px;padding:10px}
 .hint{position:fixed;bottom:12px;left:50%;transform:translateX(-50%);font-family:var(--mono);
   font-size:9px;letter-spacing:1px;color:var(--t3);pointer-events:none;z-index:5;
-  background:var(--sur);border:1px solid var(--bdr);border-radius:14px;padding:5px 14px;backdrop-filter:blur(6px)}
+  background:rgba(9,11,18,.48);border:1px solid rgba(90,96,128,.35);border-radius:14px;padding:5px 14px;backdrop-filter:blur(8px)}
 .inspector{position:fixed;right:12px;bottom:12px;width:min(320px,calc(100vw - 24px));
   background:var(--sur);border:1px solid var(--bdr2);border-radius:10px;padding:14px;
   backdrop-filter:blur(10px);z-index:6;display:none}
@@ -185,6 +188,20 @@ body.roomMode .room{top:10px;max-height:calc(100vh - 20px)}
 .treebtn{margin-top:12px;width:100%;background:transparent;border:1px solid var(--teal);color:var(--teal);
   font-weight:800;font-family:var(--mono);font-size:10px;letter-spacing:2px;border-radius:6px;padding:9px;cursor:pointer}
 .prov{font-family:var(--mono);font-size:8px;color:var(--t3);text-align:center;margin-top:6px}
+.archcut{display:grid;gap:8px;margin-top:8px}
+.layerrow{position:relative;display:grid;grid-template-columns:82px 1fr;gap:10px;align-items:center;
+  min-height:46px;border:1px solid rgba(90,96,128,.35);border-radius:8px;padding:8px;
+  background:linear-gradient(90deg,rgba(9,11,18,.74),rgba(13,15,22,.34));cursor:pointer;overflow:hidden}
+.layerrow:before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--lc,#2dd4bf);box-shadow:0 0 20px var(--lc,#2dd4bf)}
+.layerrow.on{border-color:var(--lc,#2dd4bf);box-shadow:0 0 28px rgba(45,212,191,.08)}
+.layerdepth{font-family:var(--mono);font-size:8px;letter-spacing:1px;color:var(--t3);text-transform:uppercase}
+.layername{font-weight:800;font-size:12px}
+.layermods{font-family:var(--mono);font-size:9px;color:var(--t2);margin-top:3px}
+.archdetail{border:1px solid rgba(90,96,128,.42);border-radius:8px;padding:10px;margin-top:10px;background:rgba(5,6,10,.42)}
+.scopebtn{margin-top:10px;width:100%;background:transparent;border:1px solid var(--teal);color:var(--teal);
+  font-family:var(--mono);font-size:9px;font-weight:800;letter-spacing:1.5px;border-radius:6px;padding:9px;cursor:pointer}
+.scopepacket{font-family:var(--mono);font-size:8px;color:var(--t2);white-space:pre-wrap;margin-top:8px;display:none}
+.scopepacket.on{display:block}
 </style>
 </head>
 <body>
@@ -12430,6 +12447,81 @@ const S = {
     "BuildBoard": "5d621d2b-485f-41d9-a88c-9dbb5e851a6a"
   }
 };
+const PLANETARY_SHELL_VERSION = 'planetary-system-v1';
+const PLANETARY_APPS = [
+  {name:'Alice', type:'application', description:'Land-intelligence engine',
+    planet:{radius:30,surfaceType:'violet-ocean',atmosphere:true,waterCoverage:0.34,landCoverage:0.42,ringCount:1,moonCount:3,glowIntensity:1.25,rotationSpeed:0.22,orbitRadius:154,orbitSpeed:0.020,developmentLevel:6,baseColor:'#8b5cf6',accentColor:'#7dd3fc',
+      layers:[
+        {id:'presentation',name:'Land Intelligence UI',shell:'spatial-shell',modules:['parcel-room','map-view','report-view'],repo:'alice',tests:'ui smoke pending',deployment:'pages preview',dependencies:['Map Shell','Image Shell'],color:'#a78bfa'},
+        {id:'ingestion',name:'Ingestion Shells',shell:'alice-ingestion',modules:['parcel ingestion','hydrology','elevation','zoning','imagery'],repo:'alice',tests:'module contract pending',deployment:'workers',dependencies:['Cloudflare','Map Shell'],color:'#7dd3fc'},
+        {id:'scoring',name:'Analysis + Scoring',shell:'location-intelligence',modules:['environmental data','scoring','location intelligence'],repo:'alice',tests:'analysis checks pending',deployment:'worker pipeline',dependencies:['canonical graph'],color:'#5eead4'},
+        {id:'canonical',name:'Canonical Memory',shell:'arca-graph',modules:['entity graph','event ledger','provenance'],repo:'arca-kernel',tests:'ledger replay pending',deployment:'kernel',dependencies:['ARCA'],color:'#fbbf24'},
+        {id:'authority',name:'Authority Core',shell:'capability-broker',modules:['identity','permissions','capabilities'],repo:'arca-kernel',tests:'broker gates pending',deployment:'kernel',dependencies:['Identity Shell'],color:'#e879f9'}
+      ]}},
+  {name:'TreeOS', type:'application', description:'Field operations network',
+    planet:{radius:28,surfaceType:'forest',atmosphere:true,waterCoverage:0.28,landCoverage:0.58,ringCount:0,moonCount:2,glowIntensity:1.05,rotationSpeed:0.18,orbitRadius:210,orbitSpeed:0.016,developmentLevel:7,baseColor:'#3ddc84',accentColor:'#14532d',
+      layers:[
+        {id:'presentation',name:'Presentation / UI',shell:'spatial-shell',modules:['website','field-ui','admin'],repo:'treeos',path:'apps/web',tests:'41 / 43 passing',deployment:'Cloudflare Pages',dependencies:['Identity Shell','Map Shell'],color:'#86efac'},
+        {id:'operations',name:'TreeOS Operations',shell:'operations-shell',modules:['jobs','equipment','employees','customers'],repo:'treeos',path:'packages/operations',tests:'domain tests pending',deployment:'Workers API',dependencies:['Accounting Shell','Equipment Ledger'],color:'#3ddc84'},
+        {id:'intelligence',name:'Intelligence Layer',shell:'knowledge-shell',modules:['mr-results','knowledge-engine','field recommendations'],repo:'treeos',path:'packages/intelligence',tests:'knowledge checks pending',deployment:'Worker pipeline',dependencies:['Alice','FieldTrace'],color:'#2dd4bf'},
+        {id:'canonical',name:'Canonical Graph + Ledger',shell:'arca-graph',modules:['entity-graph','ledger','media','history'],repo:'arca-kernel',path:'packages/core',tests:'ledger replay pending',deployment:'kernel service',dependencies:['ARCA','Memory Shell'],color:'#f5c542'},
+        {id:'authority',name:'Capability + Authority Core',shell:'capability-broker',modules:['identity','capability-broker','permissions'],repo:'arca-kernel',path:'packages/core/src/capability-broker.ts',tests:'broker gates pending',deployment:'kernel service',dependencies:['Identity Shell'],color:'#c084fc'}
+      ]}},
+  {name:'Vyro', type:'application', description:'Commerce and gear storefront system',
+    planet:{radius:24,surfaceType:'ember-metal',atmosphere:true,waterCoverage:0.08,landCoverage:0.7,ringCount:2,moonCount:1,glowIntensity:1.08,rotationSpeed:0.26,orbitRadius:262,orbitSpeed:0.013,developmentLevel:5,baseColor:'#f97316',accentColor:'#f5c542',
+      layers:[
+        {id:'presentation',name:'Storefront Shell',shell:'commerce-ui-shell',modules:['catalog','creative studio entry','product pages'],repo:'vyro',tests:'storefront smoke external',deployment:'Cloudflare Pages',dependencies:['Image Shell'],color:'#fb923c'},
+        {id:'commerce',name:'Commerce Core',shell:'commerce-shell',modules:['checkout','orders','catalog sync'],repo:'vyro',tests:'external project',deployment:'production storefront',dependencies:['Stripe','Printify'],color:'#f5c542'},
+        {id:'authority',name:'Customer Authority',shell:'identity-shell',modules:['login','permissions','receipts'],repo:'auth-shell',tests:'contract pending',deployment:'shared shell',dependencies:['Identity Shell'],color:'#c084fc'}
+      ]}},
+  {name:'Control Map', type:'application', description:'Spatial command and map control shell',
+    planet:{radius:23,surfaceType:'ocean-grid',atmosphere:true,waterCoverage:0.62,landCoverage:0.24,ringCount:0,moonCount:3,glowIntensity:1.15,rotationSpeed:0.2,orbitRadius:314,orbitSpeed:0.011,developmentLevel:5,baseColor:'#4e9fff',accentColor:'#2dd4bf',
+      layers:[
+        {id:'map-ui',name:'Map UI',shell:'map-shell',modules:['layers','markers','drawing tools'],repo:'map-shell',tests:'visual smoke pending',deployment:'shared module',dependencies:['FieldTrace'],color:'#4e9fff'},
+        {id:'spatial-data',name:'Spatial Data',shell:'geo-data-shell',modules:['parcels','overlays','routes'],repo:'fieldtrace',tests:'adapter checks pending',deployment:'worker/data',dependencies:['Alice'],color:'#2dd4bf'},
+        {id:'authority',name:'Map Authority',shell:'capability-broker',modules:['scope gates','write permissions'],repo:'arca-kernel',tests:'broker gates pending',deployment:'kernel',dependencies:['ARCA'],color:'#c084fc'}
+      ]}},
+  {name:'Gear Room', type:'application', description:'Equipment, assets, and operational gear room',
+    planet:{radius:21,surfaceType:'iron-crater',atmosphere:false,waterCoverage:0.04,landCoverage:0.82,ringCount:1,moonCount:0,glowIntensity:0.78,rotationSpeed:0.16,orbitRadius:366,orbitSpeed:0.009,developmentLevel:4,baseColor:'#94a3b8',accentColor:'#f5c542',
+      layers:[
+        {id:'assets',name:'Asset Inventory',shell:'equipment-shell',modules:['equipment','tools','maintenance'],repo:'treeos',tests:'asset tests pending',deployment:'TreeOS module',dependencies:['Equipment Ledger'],color:'#94a3b8'},
+        {id:'accounting',name:'Cost + Ledger',shell:'accounting-shell',modules:['job costing','depreciation','repair history'],repo:'accounting-shell',tests:'ledger checks pending',deployment:'shared shell',dependencies:['Tree Accounting Shell'],color:'#f5c542'}
+      ]}},
+  {name:'Creative Studio', type:'application', description:'Media, image, and creative production shell',
+    planet:{radius:25,surfaceType:'aurora',atmosphere:true,waterCoverage:0.38,landCoverage:0.36,ringCount:1,moonCount:2,glowIntensity:1.32,rotationSpeed:0.28,orbitRadius:420,orbitSpeed:0.0075,developmentLevel:6,baseColor:'#e879f9',accentColor:'#a78bfa',
+      layers:[
+        {id:'studio-ui',name:'Creative UI',shell:'image-shell',modules:['canvas','mockups','asset browser'],repo:'image-shell',tests:'visual checks pending',deployment:'shared module',dependencies:['Vyro'],color:'#e879f9'},
+        {id:'media-core',name:'Media Core',shell:'media-shell',modules:['generation','storage','transformations'],repo:'image-shell',tests:'pipeline pending',deployment:'workers/r2',dependencies:['Cloudflare','Ollama'],color:'#a78bfa'},
+        {id:'authority',name:'Creative Authority',shell:'capability-broker',modules:['usage limits','asset permissions'],repo:'arca-kernel',tests:'broker gates pending',deployment:'kernel',dependencies:['Identity Shell'],color:'#c084fc'}
+      ]}}
+];
+function ensurePlanetaryApps(){
+  const existing=Object.fromEntries(S.entities.map(e=>[e.name,e]));
+  const now=S.generatedAt||new Date().toISOString();
+  PLANETARY_APPS.forEach((cfg,i)=>{
+    let entity=existing[cfg.name];
+    if(!entity){
+      entity={id:'ucc-shell-'+cfg.name.toLowerCase().replace(/[^a-z0-9]+/g,'-'),
+        type:cfg.type||'application',name:cfg.name,description:null,status:'RUNNING',health:'HEALTHY',
+        capabilities:[],location:{logicalZone:'command-center'},
+        metadata:{description:cfg.description,shell:true,projectionOnly:true,planet:cfg.planet},
+        createdAt:now,updatedAt:now};
+      S.entities.push(entity);existing[cfg.name]=entity;
+      S.relationships.push({id:'ucc-rel-'+entity.id+'-contained',type:'contains',
+        sourceId:'95874c23-832d-4877-adda-f4e8bb3ed70a',targetId:entity.id,
+        metadata:{projection:PLANETARY_SHELL_VERSION,reason:'initial command-center planet'}});
+    }else{
+      entity.metadata=entity.metadata||{};
+      entity.metadata.planet={...(entity.metadata.planet||{}),...cfg.planet};
+      entity.metadata.shell=entity.metadata.shell||cfg.name!=='Alice';
+      entity.metadata.description=entity.metadata.description||cfg.description;
+    }
+  });
+  S.planetarySystem={schemaVersion:PLANETARY_SHELL_VERSION,
+    evolutionHooks:['moonCount','ringCount','surfaceType','waterCoverage','landCoverage','developmentLevel','satellites','cityLights'],
+    apps:PLANETARY_APPS.map(p=>p.name)};
+}
+ensurePlanetaryApps();
 const byId = Object.fromEntries(S.entities.map(e=>[e.id,e]));
 const T = S.ideaTargets;
 const focusId = S.focusEntityId;
@@ -12446,7 +12538,7 @@ const THEMES = {
   cosmos: {
     themeId:'cosmos', name:'Cosmos', metaphor:{system:'planet',application:'world',module:'moon',
       agent:'probe',deployment:'station',idea:'proto-star',tenant:'colony',extension:'satellite'},
-    bg:'#05060a', grid:true, particles:true, glow:true, shape:'orb',
+    bg:'#05060a', grid:false, particles:true, glow:true, shape:'orb',
     groundLine:false, labelColor:'#e8eaf0',
   },
   forest: {
@@ -12465,6 +12557,7 @@ const THEMES = {
 let THEME = THEMES.cosmos;
 /* ── COLOR LAW: core hue = origin · rings = context · status = effect ── */
 const FAMILY_BASE = { 'NviroGear':'#2dd4bf','TreeOS':'#3ddc84','ARCA':'#c084fc','Alice':'#8b5cf6',
+  'Vyro':'#f97316','Control Map':'#4e9fff','Gear Room':'#94a3b8','Creative Studio':'#e879f9',
   'LandscapeOS':'#f5c542','BuildBoard':'#94a3b8','Land Intelligence':'#4e9fff' };
 const TYPE_NEUTRAL = { system:'#9aa1b8',application:'#9aa1b8',module:'#8fa3c0',agent:'#c4b5fd',
   deployment:'#86efac',tenant:'#7fdcc9',extension:'#d4c07a',idea:'#cfeaff' };
@@ -12489,6 +12582,20 @@ function contextRings(id){
 }
 const HEALTH_COLOR = {HEALTHY:'#3ddc84',DEGRADED:'#a78bfa',WARNING:'#f5c542',CRITICAL:'#ff5c5c',OFFLINE:'#ff5c5c',UNKNOWN:'#5a6080'};
 const isCode = e => e.type==='file'||e.type==='folder';
+const PLANET_DEFAULT = {radius:14,surfaceType:'rock',atmosphere:false,waterCoverage:0.1,landCoverage:0.55,
+  ringCount:0,moonCount:0,glowIntensity:0.65,rotationSpeed:0.12,orbitRadius:180,orbitSpeed:0.01,
+  developmentLevel:2,baseColor:null,accentColor:null};
+function planetConfig(e,i){
+  const meta=(e.metadata&&e.metadata.planet)||{};
+  const alt=altitudeOf(e);
+  const radius=alt===0?34:alt===1?24:alt===2?13:alt===3?8:5;
+  return {...PLANET_DEFAULT,radius,...meta,
+    baseColor:meta.baseColor||identityColor(e),
+    accentColor:meta.accentColor||TYPE_NEUTRAL[e.type]||'#9aa1b8',
+    seed:i+hashString(e.id+e.name)};
+}
+function hashString(str){let h=2166136261;for(let i=0;i<str.length;i++){h^=str.charCodeAt(i);h=Math.imul(h,16777619)}return Math.abs(h>>>0)}
+function isPlanetWorld(e){return e.type==='system'||e.type==='application'||e.type==='idea'||(e.metadata&&e.metadata.planet)}
 const nodes = {};
 (function(){
   const systems = S.entities.filter(e=>e.id!==center.id && (e.type==='system'||e.type==='application'));
@@ -12496,7 +12603,8 @@ const nodes = {};
   nodes[center.id]={x:0,y:0,z:0};
   systems.forEach((e,i)=>{
     const a=(i/systems.length)*Math.PI*2;
-    nodes[e.id]={x:Math.cos(a)*150,y:Math.sin(i*2.1)*34,z:Math.sin(a)*150};
+    const pc=planetConfig(e,i),r=pc.orbitRadius||150;
+    nodes[e.id]={x:Math.cos(a)*r,y:Math.sin(i*2.1)*34,z:Math.sin(a)*r,orbitAngle:a,orbitRadius:r,orbitSpeed:pc.orbitSpeed||0};
   });
   leaves.forEach((e,i)=>{
     let rel=null;
@@ -12506,7 +12614,8 @@ const nodes = {};
     if(!rel)rel=S.relationships.find(r=>(r.sourceId===e.id&&nodes[r.targetId])||(r.targetId===e.id&&nodes[r.sourceId]));
     const base=rel?nodes[rel.sourceId===e.id?rel.targetId:rel.sourceId]:{x:0,y:0,z:0};
     const a=(i/Math.max(leaves.length,1))*Math.PI*2+0.7;
-    nodes[e.id]={x:base.x+Math.cos(a)*85,y:base.y+((i%2)?52:-52),z:base.z+Math.sin(a)*85};
+    const pc=planetConfig(e,i),r=Math.max(62,Math.min(108,(pc.orbitRadius||170)*0.28));
+    nodes[e.id]={x:base.x+Math.cos(a)*r,y:base.y+((i%2)?52:-52),z:base.z+Math.sin(a)*r,orbitAngle:a,orbitRadius:r,orbitSpeed:(pc.orbitSpeed||0)*1.4};
   });
 })();
 const EXT_COLOR = {json:'#f5a623',ts:'#4e9fff',tsx:'#2dd4bf',js:'#f5c542',css:'#a78bfa',
@@ -12585,6 +12694,14 @@ const cv=document.getElementById('c'),ctx=cv.getContext('2d');
 let W,H,DPR;
 function resize(){DPR=Math.min(devicePixelRatio||1,2);W=innerWidth;H=innerHeight;cv.width=W*DPR;cv.height=H*DPR;ctx.setTransform(DPR,0,0,DPR,0,0)}
 resize();addEventListener('resize',resize);
+const STARFIELD=Array.from({length:420},(_,i)=>({x:(hashString('sx'+i)%10000)/10000,y:(hashString('sy'+i)%10000)/10000,
+  z:(hashString('sz'+i)%10000)/10000,r:0.35+((hashString('sr'+i)%100)/100)*1.25,
+  tw:(hashString('st'+i)%628)/100}));
+const NEBULAE=[
+  {x:.18,y:.18,r:.42,c:'rgba(139,92,246,.12)'},{x:.72,y:.62,r:.5,c:'rgba(45,212,191,.10)'},
+  {x:.48,y:.35,r:.34,c:'rgba(78,159,255,.07)'},{x:.84,y:.2,r:.28,c:'rgba(245,197,66,.05)'}
+];
+let hoverId=null;
 let yaw=0.6,pitch=0.32,dist=520,autoSpin=true;
 let tYaw=yaw,tPitch=pitch,tDist=dist;
 let cam={x:0,y:0,z:0},tCam={x:0,y:0,z:0};
@@ -12599,6 +12716,8 @@ function project(p){
 let drag=null,pinch=null,moved=false;
 cv.addEventListener('pointerdown',e=>{drag={x:e.clientX,y:e.clientY};moved=false;autoSpin=false;cv.setPointerCapture(e.pointerId)});
 cv.addEventListener('pointermove',e=>{
+  hoverId=pick(e.clientX,e.clientY,0.9);
+  cv.style.cursor=hoverId?'pointer':'grab';
   if(!drag)return;const dx=e.clientX-drag.x,dy=e.clientY-drag.y;
   if(Math.abs(dx)+Math.abs(dy)>4)moved=true;
   tYaw+=dx*0.006;tPitch=Math.max(-1.2,Math.min(1.2,tPitch+dy*0.005));
@@ -12611,10 +12730,17 @@ cv.addEventListener('touchmove',e=>{if(e.touches.length===2&&pinch){const d=dst(
 cv.addEventListener('touchend',()=>{pinch=null});
 function dst(t){return Math.hypot(t[0].clientX-t[1].clientX,t[0].clientY-t[1].clientY)}
 let selected=null,roomId=null,relatedSet=new Set();
-function tap(x,y){
-  let best=null,bd=44;
+function pick(x,y,scale){
+  let best=null,bestScore=1;
   for(const id in nodes){if(!visSem(id))continue;
-    const p=project(cpos[id]);const d=Math.hypot(p.x-x,p.y-y);if(d<bd){bd=d;best=id}}
+    const p=project(cpos[id]),e=byId[id],pc=planetConfig(e,0);
+    const rr=Math.max(10,(pc.radius||12)*p.s*(isPlanetWorld(e)?2.2:1.1))*scale;
+    const d=Math.hypot(p.x-x,p.y-y),score=d/Math.max(18,rr);
+    if(score<bestScore){bestScore=score;best=id}}
+  return best;
+}
+function tap(x,y){
+  const best=pick(x,y,1.25);
   selected=best;
   relatedSet=new Set();
   if(best){
@@ -12727,7 +12853,8 @@ let roomTab='OVERVIEW';
 function buildRoomTabs(id){
   const e=byId[id];
   const hasTree = S.relationships.some(r=>r.sourceId===id && r.type==='contains' && byId[r.targetId] && isCode(byId[r.targetId]));
-  const tabs=['OVERVIEW','WORK'].concat(hasTree?['FILES','LOGIC']:[]).concat(['EVENTS','ACTIONS']).concat(id===focusId?['LINEAGE']:[]).concat(['IMPACT']);
+  const hasArch = !!(e.metadata&&e.metadata.planet&&Array.isArray(e.metadata.planet.layers));
+  const tabs=['OVERVIEW'].concat(hasArch?['ARCH']:[]).concat(['WORK']).concat(hasTree?['FILES','LOGIC']:[]).concat(['EVENTS','ACTIONS']).concat(id===focusId?['LINEAGE']:[]).concat(['IMPACT']);
   roomTab='OVERVIEW';
   const rt=document.getElementById('rtabs');
   rt.innerHTML=tabs.map(t2=>'<button data-rt="'+t2+'">'+t2+'</button>').join('');
@@ -12763,6 +12890,12 @@ function renderRoomTab(id){
       '<div class="talknote">entered through the '+e.name+' node — zero ambiguity about where this idea belongs</div>'+
       '<div id="drafts"></div></div>':'');
     const s2=document.getElementById('talkSend2');if(s2)s2.onclick=runTalk;
+  }
+  if(roomTab==='ARCH'){
+    rb.innerHTML=renderArchitectureCutaway(id);
+    rb.querySelectorAll('[data-layer]').forEach(row=>row.onclick=()=>selectArchitectureLayer(id,row.getAttribute('data-layer')));
+    const first=(m.planet&&m.planet.layers&&m.planet.layers[0]&&m.planet.layers[0].id)||'';
+    if(first)selectArchitectureLayer(id,first);
   }
   if(roomTab==='FILES'){treeRoot=id;treeMode='files';rb.innerHTML='<div class="trunk" id="trunk2"></div>'+
     '<div class="treenote">files are canonical entities · contains projection · red is reserved for real failure</div>';
@@ -12806,6 +12939,48 @@ function renderRoomTab(id){
     }).join(''):'<div style="color:var(--t3);font-size:11px">no capabilities declared</div>')+
     '<div class="treenote">the button never grants authority · every request goes through the Capability Broker</div>';
   }
+}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function renderArchitectureCutaway(id){
+  const e=byId[id],layers=((e.metadata||{}).planet||{}).layers||[];
+  if(!layers.length)return '<div style="color:var(--t3);font-size:11px">no architecture layers registered for this planet yet</div>';
+  return '<div class="treenote">planet cross-section · layers are generated from metadata.planet.layers, not decoration</div>'+
+    '<div class="archcut">'+layers.map((l,i)=>
+      '<div class="layerrow" data-layer="'+esc(l.id)+'" style="--lc:'+esc(l.color||identityColor(e))+'">'+
+        '<div><div class="layerdepth">layer '+(i+1)+'</div><div class="layerdepth">'+esc(l.id)+'</div></div>'+
+        '<div><div class="layername">'+esc(l.name||l.id)+'</div>'+
+        '<div class="layermods">'+esc((l.modules||[]).join(' · '))+'</div></div></div>').join('')+'</div>'+
+    '<div class="archdetail" id="archDetail"></div>';
+}
+function selectArchitectureLayer(id,layerId){
+  const e=byId[id],layers=((e.metadata||{}).planet||{}).layers||[];
+  const layer=layers.find(l=>l.id===layerId)||layers[0];if(!layer)return;
+  document.querySelectorAll('.layerrow').forEach(r=>r.classList.toggle('on',r.getAttribute('data-layer')===layer.id));
+  const detail=document.getElementById('archDetail');if(!detail)return;
+  const deps=(layer.dependencies||[]).join(', ')||'none registered';
+  const packet=[
+    'scope.kind=planet-layer',
+    'planet='+e.name,
+    'entityId='+id,
+    'layer='+layer.id,
+    'shell='+(layer.shell||'unassigned'),
+    'repo='+(layer.repo||'unassigned'),
+    'path='+(layer.path||'unassigned'),
+    'modules='+(layer.modules||[]).join(', '),
+    'dependencies='+deps
+  ].join('\\n');
+  detail.innerHTML='<div class="kv">'+
+    '<span class="k">Layer</span><span>'+esc(layer.name||layer.id)+'</span>'+
+    '<span class="k">Shell</span><span>'+esc(layer.shell||'unassigned')+'</span>'+
+    '<span class="k">Repo/path</span><span>'+esc([layer.repo,layer.path].filter(Boolean).join(' / ')||'unassigned')+'</span>'+
+    '<span class="k">Modules</span><span>'+esc((layer.modules||[]).join(', ')||'none registered')+'</span>'+
+    '<span class="k">Dependencies</span><span>'+esc(deps)+'</span>'+
+    '<span class="k">Tests</span><span>'+esc(layer.tests||'not registered')+'</span>'+
+    '<span class="k">Deployment</span><span>'+esc(layer.deployment||'not registered')+'</span>'+
+    '</div><button class="scopebtn" id="scopeLayerBtn">WORK ON THIS LAYER -> CODEX SCOPE</button>'+
+    '<pre class="scopepacket" id="scopePacket">'+esc(packet)+'</pre>';
+  const btn=document.getElementById('scopeLayerBtn');
+  if(btn)btn.onclick=()=>{const p=document.getElementById('scopePacket');if(p)p.classList.toggle('on')};
 }
 /* ── CODE TREE ENGINE ─────────────────────────────────────── */
 const ctree=document.getElementById('ctree'),trunk=document.getElementById('trunk'),
@@ -13050,23 +13225,126 @@ function downstreamOf(id){
     }}
   return affected;
 }
+function drawSpace(){
+  const bg=ctx.createLinearGradient(0,0,W,H);
+  bg.addColorStop(0,THEME.bg);
+  bg.addColorStop(.48,'#060817');
+  bg.addColorStop(1,'#02030a');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  NEBULAE.forEach(n=>{
+    const g=ctx.createRadialGradient(W*n.x,H*n.y,0,W*n.x,H*n.y,Math.max(W,H)*n.r);
+    g.addColorStop(0,n.c);g.addColorStop(.55,n.c.replace(/[\d.]+\)$/,'.035)'));g.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  });
+  STARFIELD.forEach(s=>{
+    const par=(s.z-.5)*38;
+    const x=(s.x*W+Math.sin(yaw*.7+s.tw)*par+W)%W;
+    const y=(s.y*H+Math.sin(pitch*.9+s.tw)*par*.55+H)%H;
+    const a=.32+s.z*.55+Math.sin(t*1.7+s.tw)*.12;
+    ctx.globalAlpha=Math.max(.18,Math.min(.95,a));
+    ctx.fillStyle=s.z>.72?'#e8f4ff':s.z>.38?'#b8c7ff':'#7a8aa8';
+    ctx.beginPath();ctx.arc(x,y,s.r*(.6+s.z*1.4),0,7);ctx.fill();
+  });
+  ctx.globalAlpha=1;
+}
+function updateOrbitTargets(){
+  if(focusWorld||roomId)return;
+  const worlds=Object.keys(nodes).filter(id=>isPlanetWorld(byId[id])&&id!==center.id);
+  worlds.forEach((id,i)=>{
+    const n=nodes[id];if(!n.orbitRadius||!n.orbitSpeed)return;
+    const a=(n.orbitAngle||0)+t*n.orbitSpeed;
+    tpos[id]={...tpos[id],x:Math.cos(a)*n.orbitRadius,y:Math.sin(i*2.1+t*.35)*34,z:Math.sin(a)*n.orbitRadius};
+  });
+}
+function drawOrbitPath(id){
+  const n=nodes[id],e=byId[id];if(!n||!n.orbitRadius||id===center.id||!isPlanetWorld(e)||focusWorld)return;
+  const pts=[];for(let i=0;i<=96;i++){const a=(i/96)*Math.PI*2;pts.push(project({x:Math.cos(a)*n.orbitRadius,y:0,z:Math.sin(a)*n.orbitRadius}))}
+  ctx.strokeStyle='rgba(170,190,255,.11)';ctx.lineWidth=1;ctx.setLineDash([2,8]);
+  ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p.x,p.y):ctx.moveTo(p.x,p.y));ctx.stroke();ctx.setLineDash([]);
+}
+function shadeColor(hex,amt){
+  const n=parseInt((hex||'#888888').slice(1),16),r=Math.max(0,Math.min(255,(n>>16)+amt)),
+    g=Math.max(0,Math.min(255,((n>>8)&255)+amt)),b=Math.max(0,Math.min(255,(n&255)+amt));
+  return '#'+((1<<24)+(r<<16)+(g<<8)+b).toString(16).slice(1);
+}
+function drawPlanet(p,e,pc,RR,col,hc,isFlash,glow){
+  const hover=hoverId===e.id,active=selected===e.id||hover||glow;
+  const phase=(t*(pc.rotationSpeed||.1)+pc.seed*.001)%6.283;
+  const R=Math.max(2,RR);
+  ctx.save();
+  ctx.globalAlpha=(selected&&!relatedSet.has(e.id))?0.3:1;
+  ctx.shadowColor=isFlash?'#fff':(pc.baseColor||col);
+  ctx.shadowBlur=(isFlash?48:active?34:18)*(pc.glowIntensity||1)*Math.max(.5,p.s);
+  const aura=ctx.createRadialGradient(p.x,p.y,R*.55,p.x,p.y,R*(active?3.2:2.45));
+  aura.addColorStop(0,(pc.baseColor||col)+'55');aura.addColorStop(.45,(pc.baseColor||col)+'20');aura.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=aura;ctx.beginPath();ctx.arc(p.x,p.y,R*(active?3.2:2.45),0,7);ctx.fill();
+  if(pc.ringCount>0){
+    ctx.save();ctx.translate(p.x,p.y);ctx.rotate(-0.28+Math.sin(phase)*0.04);ctx.scale(1,.32);
+    for(let i=0;i<pc.ringCount;i++){
+      ctx.strokeStyle=(i%2?pc.accentColor:pc.baseColor)+'66';ctx.lineWidth=Math.max(1,R*.08);
+      ctx.beginPath();ctx.ellipse(0,0,R*(1.55+i*.22),R*(1.55+i*.22),0,0,7);ctx.stroke();
+    }
+    ctx.restore();
+  }
+  const body=ctx.createRadialGradient(p.x-R*.38,p.y-R*.44,R*.08,p.x+R*.38,p.y+R*.36,R*1.12);
+  body.addColorStop(0,shadeColor(pc.baseColor||col,62));
+  body.addColorStop(.45,pc.baseColor||col);
+  body.addColorStop(1,shadeColor(pc.baseColor||col,-88));
+  ctx.fillStyle=body;ctx.beginPath();ctx.arc(p.x,p.y,R,0,7);ctx.fill();
+  ctx.clip();
+  const bands=Math.max(3,Math.round((pc.landCoverage||.4)*8));
+  for(let i=0;i<bands;i++){
+    const yy=p.y-R+((i+.5)/bands)*R*2;
+    const amp=R*(.18+((hashString(e.id+i)%70)/100)*.34);
+    const wob=Math.sin(phase+i*1.9)*R*.18;
+    ctx.fillStyle=i%2?shadeColor(pc.accentColor||col,-18):(pc.accentColor||col)+'cc';
+    ctx.globalAlpha=.16+((hashString('a'+e.id+i)%40)/100);
+    ctx.beginPath();
+    ctx.ellipse(p.x+wob,yy,amp,R*(.045+((i%3)*.02)),Math.sin(i+phase)*.35,0,7);
+    ctx.fill();
+  }
+  if((pc.waterCoverage||0)>0.2){
+    ctx.globalAlpha=.22;ctx.fillStyle='#7dd3fc';
+    for(let i=0;i<4;i++){
+      ctx.beginPath();ctx.ellipse(p.x+Math.sin(phase+i)*R*.38,p.y+Math.cos(i*2.1)*R*.42,
+        R*(.14+pc.waterCoverage*.18),R*.045,phase+i,0,7);ctx.fill();
+    }
+  }
+  if((pc.developmentLevel||0)>4){
+    ctx.globalAlpha=.5;ctx.fillStyle='#f8fafc';
+    for(let i=0;i<pc.developmentLevel;i++){
+      const a=phase+i*2.41,rr=R*(.22+((i*37)%55)/100);
+      ctx.beginPath();ctx.arc(p.x+Math.cos(a)*rr,p.y+Math.sin(a*1.7)*rr*.55,Math.max(.7,R*.026),0,7);ctx.fill();
+    }
+  }
+  ctx.restore();
+  ctx.save();
+  ctx.globalAlpha=(selected&&!relatedSet.has(e.id))?0.35:1;
+  ctx.strokeStyle=pc.atmosphere?(pc.accentColor||col):'rgba(232,234,240,.35)';
+  ctx.lineWidth=active?2.2:1.2;ctx.shadowColor=ctx.strokeStyle;ctx.shadowBlur=active?22:10;
+  ctx.beginPath();ctx.arc(p.x,p.y,R*(pc.atmosphere?1.08:1.01),0,7);ctx.stroke();
+  ctx.shadowBlur=0;
+  ctx.fillStyle=hc;ctx.beginPath();ctx.arc(p.x+R*.74,p.y-R*.68,Math.max(2,R*.095),0,7);ctx.fill();
+  const rings=contextRings(e.id);
+  rings.forEach((rc,ri)=>{ctx.strokeStyle=rc;ctx.lineWidth=1;ctx.beginPath();ctx.arc(p.x,p.y,R*(1.24+ri*.13),0,7);ctx.stroke()});
+  for(let i=0;i<(pc.moonCount||0);i++){
+    const a=phase*(1.4+i*.22)+i*2.2,orb=R*(1.65+i*.34),mr=Math.max(1.6,R*(.08+i*.012));
+    ctx.fillStyle=i%2?shadeColor(pc.accentColor||col,20):'#cbd5e1';
+    ctx.beginPath();ctx.arc(p.x+Math.cos(a)*orb,p.y+Math.sin(a)*orb*.42,mr,0,7);ctx.fill();
+  }
+  ctx.restore();
+}
 let t=0;
 function frame(){
   t+=0.016;
   if(autoSpin)tYaw+=0.0016;
   yaw+=(tYaw-yaw)*0.1;pitch+=(tPitch-pitch)*0.1;dist+=(tDist-dist)*0.08;
   cam.x+=(tCam.x-cam.x)*0.08;cam.y+=(tCam.y-cam.y)*0.08;cam.z+=(tCam.z-cam.z)*0.08;
+  updateOrbitTargets();
   for(const id in cpos){const c2=cpos[id],t2=tpos[id];
     c2.x+=(t2.x-c2.x)*0.09;c2.y+=(t2.y-c2.y)*0.09;c2.z+=(t2.z-c2.z)*0.09;}
-  ctx.fillStyle=THEME.bg;ctx.fillRect(0,0,W,H);
-  if(THEME.grid){
-    ctx.strokeStyle='rgba(45,212,191,0.05)';ctx.lineWidth=1;
-    for(let g=-300;g<=300;g+=60){
-      const a=project({x:g,y:120,z:-300}),b=project({x:g,y:120,z:300});
-      const c2=project({x:-300,y:120,z:g}),d=project({x:300,y:120,z:g});
-      ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);ctx.moveTo(c2.x,c2.y);ctx.lineTo(d.x,d.y);ctx.stroke();
-    }
-  }
+  drawSpace();
+  Object.keys(nodes).forEach(drawOrbitPath);
   // containment boundary: composition without swallowing — Alice keeps her ID
   if(S.containment&&nodes[S.containment.boundary]&&visSem(S.containment.boundary)){
     const B=project(cpos[S.containment.boundary]);
@@ -13120,12 +13398,13 @@ function frame(){
     if(!visSem(id))continue;
     ctx.globalAlpha=(selected&&!relatedSet.has(id))?0.25:1;
     const e=byId[id];
+    const pc=planetConfig(e,0);
     const hc=HEALTH_COLOR[e.health]||'#5a6080';   // status effect only
     const col=identityColor(e);                    // identity — never stolen by status
-    const R=(id===center.id?15:id===focusId?12:9)*p.s;
+    const R=(pc.radius||((id===center.id?15:id===focusId?12:9)))*p.s*2.15;
     const isFlash=flashes[id]&&now<flashes[id];
-    const glow=activeGlow[id];
-    const pulseAmt=1+Math.sin(t*2.4+p.x)*0.08+(glow?Math.sin(t*6)*0.12:0);
+    const glow=activeGlow[id]||hoverId===id;
+    const pulseAmt=1+Math.sin(t*2.4+p.x)*0.035+(glow?Math.sin(t*6)*0.06:0);
     const isIdea=(e.metadata&&e.metadata.lifecycle==='idea')||e.type==='idea';
     ctx.shadowColor=isFlash?'#ffffff':col;
     ctx.shadowBlur=THEME.glow?(isFlash?34:selected===id?26:glow?24:14)*p.s:0;
@@ -13147,30 +13426,12 @@ function frame(){
         ctx.moveTo(p.x-RR*0.6,p.y-RR*0.6);ctx.lineTo(p.x+RR*0.6,p.y+RR*0.6);
         ctx.moveTo(p.x-RR*0.6,p.y+RR*0.6);ctx.lineTo(p.x+RR*0.6,p.y-RR*0.6);ctx.stroke();
       }
-    } else if(THEME.shape==='tree'&&e.type!=='agent'){
-      const h=RR*2.1, tr=Math.max(1.5,RR*0.22);
-      ctx.strokeStyle='#7a5a3a';ctx.lineWidth=tr;
-      ctx.beginPath();ctx.moveTo(p.x,p.y+h*0.45);ctx.lineTo(p.x,p.y-h*0.05);ctx.stroke();
-      ctx.fillStyle='#0d160e';ctx.strokeStyle=col;ctx.lineWidth=1.4;
-      for(let L=0;L<3;L++){const cy2=p.y-h*0.05-L*RR*0.5,cw=RR*(1.15-L*0.3);
-        ctx.beginPath();ctx.moveTo(p.x-cw,cy2);ctx.lineTo(p.x,cy2-RR*0.75);ctx.lineTo(p.x+cw,cy2);ctx.closePath();ctx.fill();ctx.stroke();}
-    } else if(THEME.shape==='tree'&&e.type==='agent'){
-      const fx=p.x+Math.sin(t*2.2)*RR*0.9, fy=p.y+Math.cos(t*1.7)*RR*0.6;
-      ctx.fillStyle=col;ctx.beginPath();ctx.arc(fx,fy,Math.max(1.5,RR*0.3),0,7);ctx.fill();
-      ctx.strokeStyle=col;ctx.beginPath();ctx.arc(fx,fy,Math.max(2.5,RR*0.55),0,7);ctx.stroke();
-    } else if(THEME.shape==='square'){
-      ctx.fillStyle='#12141d';
-      ctx.fillRect(p.x-RR,p.y-RR*0.7,RR*2,RR*1.4);ctx.strokeRect(p.x-RR,p.y-RR*0.7,RR*2,RR*1.4);
-      ctx.fillStyle=col;ctx.fillRect(p.x-RR,p.y-RR*0.7,4,RR*1.4);
     } else {
-      ctx.fillStyle=(id===focusId)?'#0e2a26':'#0d0f16';
-      ctx.beginPath();ctx.arc(p.x,p.y,RR,0,7);ctx.fill();ctx.stroke();
-      ctx.shadowBlur=0;
-      ctx.fillStyle=col;ctx.beginPath();ctx.arc(p.x,p.y,Math.max(2,R*0.28),0,7);ctx.fill();
+      drawPlanet(p,e,pc,RR,col,hc,isFlash,glow);
     }
     ctx.shadowBlur=0;
     // STATUS EFFECT — small, never repaints identity
-    if(!isIdea){
+    if(!isIdea&&THEME.shape==='legacy'){
       ctx.fillStyle=hc;
       ctx.beginPath();ctx.arc(p.x+RR*0.85,p.y-RR*0.85,Math.max(1.4,RR*0.18),0,7);ctx.fill();
       if(e.health==='WARNING'||e.health==='DEGRADED'){
