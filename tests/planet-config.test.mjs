@@ -58,6 +58,11 @@ test('HTML renderer includes planet rendering hooks and preserved shell features
   for (const marker of [
     'PLANETARY_SHELL_VERSION',
     'new THREE.WebGLRenderer',
+    'MeshPhysicalMaterial',
+    'ShaderMaterial',
+    'ACESFilmicToneMapping',
+    'textureSet',
+    'fbm',
     'OrbitControls',
     'Raycaster',
     'EntitySceneCompiler',
